@@ -15,7 +15,8 @@ export function spin(config: GameConfig, bet: number, rng: RandomNumberGenerator
   }
 
   const grid = spinReels(config.reels, config.rows, rng);
-  const wins = evaluateWins(grid, config.paylines, config.payouts, bet);
+  const wildIds = new Set(config.symbols.filter((s) => s.wild === true).map((s) => s.id));
+  const wins = evaluateWins(grid, config.paylines, config.payouts, bet, wildIds);
   const totalPayout = wins.reduce((sum, win) => sum + win.payout, 0);
 
   return { grid, wins, totalPayout };

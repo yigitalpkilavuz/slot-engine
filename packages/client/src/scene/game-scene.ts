@@ -22,17 +22,17 @@ import { createPaytableOverlay } from "../ui/paytable-overlay.js";
 const MIN_SPIN_DURATION_MS = 600;
 
 const TITLE_STYLE = new TextStyle({
-  fontFamily: "Arial",
-  fontSize: 26,
-  fontWeight: "bold",
-  fill: 0xffffff,
+  fontFamily: ["Cinzel", "Georgia", "serif"],
+  fontSize: 24,
+  fontWeight: "700",
+  fill: 0xd4a846,
 });
 
 const BACK_STYLE = new TextStyle({
-  fontFamily: "Arial",
-  fontSize: 18,
-  fontWeight: "bold",
-  fill: 0x95a5a6,
+  fontFamily: ["DM Sans", "Helvetica Neue", "sans-serif"],
+  fontSize: 16,
+  fontWeight: "500",
+  fill: 0x7c8a9a,
 });
 
 export function buildGameScene(

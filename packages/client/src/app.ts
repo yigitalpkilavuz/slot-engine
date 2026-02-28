@@ -11,7 +11,7 @@ import { buildGameSelectScene } from "./scene/game-select-scene.js";
 
 const CANVAS_WIDTH = 960;
 const CANVAS_HEIGHT = 540;
-const BACKGROUND_COLOR = 0x1a1a2e;
+const BACKGROUND_COLOR = 0x080c18;
 
 export async function createApp(container: HTMLElement): Promise<Application> {
   const app = new Application();
@@ -43,9 +43,9 @@ export async function createApp(container: HTMLElement): Promise<Application> {
 
   function showError(message: string): void {
     const errorStyle = new TextStyle({
-      fontFamily: "Arial",
+      fontFamily: ["DM Sans", "Helvetica Neue", "sans-serif"],
       fontSize: 18,
-      fill: 0xe74c3c,
+      fill: 0xe85d5d,
       wordWrap: true,
       wordWrapWidth: 600,
       align: "center",

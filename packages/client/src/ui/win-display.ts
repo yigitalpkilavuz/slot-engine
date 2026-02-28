@@ -8,14 +8,20 @@ const REEL_GAP = 12;
 const GRID_PADDING = 20;
 
 const WIN_TEXT_STYLE = new TextStyle({
-  fontFamily: "Arial",
-  fontSize: 28,
+  fontFamily: ["DM Sans", "Helvetica Neue", "sans-serif"],
+  fontSize: 30,
   fontWeight: "bold",
-  fill: 0xf1c40f,
+  fill: 0xf0c850,
+  dropShadow: {
+    color: 0xd4a846,
+    blur: 12,
+    alpha: 0.5,
+    distance: 0,
+  },
 });
 
 const HIGHLIGHT_COLORS: readonly number[] = [
-  0xf1c40f, 0x1abc9c, 0xe74c3c, 0x3498db, 0xe67e22,
+  0xf0c850, 0x2dd4a8, 0xe85d5d, 0x3b82f6, 0xea580c,
 ];
 
 export function createWinDisplay(canvasWidth: number): Container {
@@ -62,7 +68,7 @@ export function showWin(
       const cellY = gridOrigin.y + GRID_PADDING + rowIndex * (CELL_HEIGHT + CELL_GAP) - display.y;
 
       const highlight = new Graphics();
-      highlight.roundRect(cellX - 2, cellY - 2, CELL_WIDTH + 4, CELL_HEIGHT + 4, 10);
+      highlight.roundRect(cellX - 2, cellY - 2, CELL_WIDTH + 4, CELL_HEIGHT + 4, 12);
       highlight.stroke({ width: 3, color, alpha: 0.9 });
       highlights.addChild(highlight);
     }

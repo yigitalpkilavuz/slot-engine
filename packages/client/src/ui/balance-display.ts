@@ -7,16 +7,18 @@ export function formatCents(cents: number): string {
 }
 
 const LABEL_STYLE = new TextStyle({
-  fontFamily: "Arial",
-  fontSize: 12,
-  fill: 0x95a5a6,
+  fontFamily: ["DM Sans", "Helvetica Neue", "sans-serif"],
+  fontSize: 11,
+  fontWeight: "500",
+  fill: 0x7c8a9a,
+  letterSpacing: 1,
 });
 
 const VALUE_STYLE = new TextStyle({
-  fontFamily: "Arial",
+  fontFamily: ["DM Sans", "Helvetica Neue", "sans-serif"],
   fontSize: 22,
   fontWeight: "bold",
-  fill: 0x2ecc71,
+  fill: 0xd4a846,
 });
 
 export function createBalanceDisplay(): Container {

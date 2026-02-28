@@ -4,18 +4,17 @@ import { createBetSelector } from "./bet-selector.js";
 import { createSpinButton } from "./spin-button.js";
 
 const BAR_HEIGHT = 60;
-const BAR_COLOR = 0x0d1117;
-const BAR_ALPHA = 0.8;
+const BAR_COLOR = 0x0a0f1a;
 
 const INFO_BTN_SIZE = 36;
-const INFO_BTN_COLOR = 0x2980b9;
+const INFO_BTN_COLOR = 0x1a2535;
+const INFO_BTN_BORDER = 0x2a3a4d;
 
 const INFO_TEXT_STYLE = new TextStyle({
-  fontFamily: "Arial",
-  fontSize: 22,
+  fontFamily: ["DM Sans", "Helvetica Neue", "sans-serif"],
+  fontSize: 18,
   fontWeight: "bold",
-  fill: 0xffffff,
-  fontStyle: "italic",
+  fill: 0xd4a846,
 });
 
 export interface HudComponents {
@@ -36,11 +35,18 @@ export function createHud(
 ): HudComponents {
   const container = new Container();
 
+  // Background bar
   const bg = new Graphics();
   bg.rect(0, 0, canvasWidth, BAR_HEIGHT);
   bg.fill({ color: BAR_COLOR });
-  bg.alpha = BAR_ALPHA;
   container.addChild(bg);
+
+  // Subtle top border
+  const topLine = new Graphics();
+  topLine.moveTo(0, 0);
+  topLine.lineTo(canvasWidth, 0);
+  topLine.stroke({ width: 1, color: 0x1a2d45 });
+  container.addChild(topLine);
 
   const balanceDisplay = createBalanceDisplay();
   balanceDisplay.x = 40;
@@ -73,6 +79,7 @@ function createInfoButton(onInfo: () => void): Container {
   const bg = new Graphics();
   bg.roundRect(0, 0, INFO_BTN_SIZE, INFO_BTN_SIZE, INFO_BTN_SIZE / 2);
   bg.fill({ color: INFO_BTN_COLOR });
+  bg.stroke({ width: 1, color: INFO_BTN_BORDER });
   btn.addChild(bg);
 
   const label = new Text({ text: "i", style: INFO_TEXT_STYLE });

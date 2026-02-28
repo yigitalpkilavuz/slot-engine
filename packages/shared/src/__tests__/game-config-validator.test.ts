@@ -102,6 +102,39 @@ describe("validateGameConfig", () => {
     );
   });
 
+  it("accepts config with wild symbols", () => {
+    const symbols = [
+      { id: "cherry", name: "Cherry" },
+      { id: "wild", name: "Wild", wild: true },
+    ];
+    const reels = [
+      ["cherry", "wild", "cherry"],
+      ["wild", "cherry", "cherry"],
+      ["cherry", "cherry", "wild"],
+    ];
+    const result = validateGameConfig(
+      configWith({ symbols, reels, payouts: [{ symbolId: "cherry", count: 3, multiplier: 10 }] }),
+    );
+    expect(result.symbols[1]!.wild).toBe(true);
+  });
+
+  it("rejects payout referencing a wild symbol", () => {
+    const symbols = [
+      { id: "cherry", name: "Cherry" },
+      { id: "wild", name: "Wild", wild: true },
+    ];
+    const reels = [["cherry", "wild", "cherry"], ["cherry"], ["cherry"]];
+    const payouts = [{ symbolId: "wild", count: 3, multiplier: 10 }];
+    expect(() => validateGameConfig(configWith({ symbols, reels, payouts }))).toThrow(
+      "wild symbol",
+    );
+  });
+
+  it("rejects non-boolean wild property", () => {
+    const symbols = [{ id: "cherry", name: "Cherry", wild: "yes" }];
+    expect(() => validateGameConfig(configWith({ symbols }))).toThrow("wild must be a boolean");
+  });
+
   it("collects multiple errors at once", () => {
     try {
       validateGameConfig({

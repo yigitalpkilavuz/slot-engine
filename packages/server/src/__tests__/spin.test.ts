@@ -75,3 +75,40 @@ describe("spin", () => {
     expect(result.totalPayout).toBe(0);
   });
 });
+
+const WILD_CONFIG: GameConfig = {
+  id: "wild-test",
+  name: "Wild Test",
+  rows: 3,
+  symbols: [
+    { id: "cherry", name: "Cherry" },
+    { id: "bar", name: "Bar" },
+    { id: "wild", name: "Wild", wild: true },
+  ],
+  reels: [
+    ["cherry", "bar", "wild"],
+    ["wild", "cherry", "bar"],
+    ["cherry", "bar", "wild"],
+  ],
+  paylines: [[0, 0, 0]],
+  payouts: [
+    { symbolId: "cherry", count: 3, multiplier: 10 },
+    { symbolId: "bar", count: 3, multiplier: 20 },
+  ],
+  betOptions: [10],
+  defaultBet: 10,
+};
+
+describe("spin with wild symbols", () => {
+  it("wild substitutes in win evaluation", () => {
+    // Stop positions [0, 0, 0] produces:
+    // row 0: cherry, wild, cherry → cherry×3 with wild sub = 10*10 = 100
+    const rng = new FixedRng([0, 0, 0]);
+    const result = spin(WILD_CONFIG, 10, rng);
+
+    expect(result.wins).toHaveLength(1);
+    expect(result.wins[0]!.symbolId).toBe("cherry");
+    expect(result.wins[0]!.count).toBe(3);
+    expect(result.totalPayout).toBe(100);
+  });
+});

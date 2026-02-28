@@ -7,8 +7,9 @@ import { createReelColumn, setReelSymbols, startReelSpin, stopReelSpin, CELL_GAP
 export const REEL_GAP = 12;
 export const GRID_PADDING = 20;
 
-const PANEL_COLOR = 0x16213e;
-const PANEL_CORNER_RADIUS = 12;
+const PANEL_COLOR = 0x0c1424;
+const PANEL_BORDER_COLOR = 0x1a2d45;
+const PANEL_CORNER_RADIUS = 14;
 const REEL_STOP_STAGGER_MS = 150;
 
 export function createReelGrid(reelCount: number, rowCount: number): Container {
@@ -20,6 +21,7 @@ export function createReelGrid(reelCount: number, rowCount: number): Container {
   const panel = new Graphics();
   panel.roundRect(0, 0, contentWidth + GRID_PADDING * 2, contentHeight + GRID_PADDING * 2, PANEL_CORNER_RADIUS);
   panel.fill({ color: PANEL_COLOR });
+  panel.stroke({ width: 1.5, color: PANEL_BORDER_COLOR });
   grid.addChild(panel);
 
   for (let i = 0; i < reelCount; i++) {

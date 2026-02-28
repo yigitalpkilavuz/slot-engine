@@ -34,7 +34,7 @@ export class ApiClientError extends Error {
 
 async function fetchJson<T>(url: string, options?: RequestInit): Promise<T> {
   const headers = new Headers(options?.headers);
-  if (!headers.has("Content-Type")) {
+  if (options?.body && !headers.has("Content-Type")) {
     headers.set("Content-Type", "application/json");
   }
 

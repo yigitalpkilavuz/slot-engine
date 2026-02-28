@@ -3,26 +3,29 @@ import { formatCents } from "./balance-display.js";
 
 const BTN_SIZE = 36;
 const BTN_RADIUS = 8;
-const BTN_COLOR = 0x34495e;
+const BTN_COLOR = 0x1a2535;
+const BTN_BORDER_COLOR = 0x2a3a4d;
 
 const LABEL_STYLE = new TextStyle({
-  fontFamily: "Arial",
-  fontSize: 12,
-  fill: 0x95a5a6,
+  fontFamily: ["DM Sans", "Helvetica Neue", "sans-serif"],
+  fontSize: 11,
+  fontWeight: "500",
+  fill: 0x7c8a9a,
+  letterSpacing: 1,
 });
 
 const VALUE_STYLE = new TextStyle({
-  fontFamily: "Arial",
+  fontFamily: ["DM Sans", "Helvetica Neue", "sans-serif"],
   fontSize: 20,
   fontWeight: "bold",
-  fill: 0xffffff,
+  fill: 0xf0e6d3,
 });
 
 const BTN_TEXT_STYLE = new TextStyle({
-  fontFamily: "Arial",
+  fontFamily: ["DM Sans", "Helvetica Neue", "sans-serif"],
   fontSize: 20,
   fontWeight: "bold",
-  fill: 0xffffff,
+  fill: 0xd4a846,
 });
 
 export function createBetSelector(
@@ -39,7 +42,7 @@ export function createBetSelector(
   container.addChild(label);
 
   // Minus button
-  const minusBtn = createButton("-");
+  const minusBtn = createButton("\u2212");
   minusBtn.y = 18;
   container.addChild(minusBtn);
 
@@ -101,6 +104,7 @@ function createButton(label: string): Container {
   const bg = new Graphics();
   bg.roundRect(0, 0, BTN_SIZE, BTN_SIZE, BTN_RADIUS);
   bg.fill({ color: BTN_COLOR });
+  bg.stroke({ width: 1, color: BTN_BORDER_COLOR });
   btn.addChild(bg);
 
   const text = new Text({ text: label, style: BTN_TEXT_STYLE });

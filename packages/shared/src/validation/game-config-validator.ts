@@ -39,6 +39,7 @@ export function validateGameConfig(data: unknown): GameConfig {
   }
 
   const symbolIds = new Set<string>();
+  const wildSymbolIds = new Set<string>();
   if (Array.isArray(data["symbols"])) {
     for (const [i, sym] of data["symbols"].entries()) {
       if (
@@ -52,7 +53,13 @@ export function validateGameConfig(data: unknown): GameConfig {
       } else if (symbolIds.has(sym["id"])) {
         errors.push(`Duplicate symbol id: '${sym["id"]}'`);
       } else {
+        if ("wild" in sym && typeof sym["wild"] !== "boolean") {
+          errors.push(`symbols[${String(i)}].wild must be a boolean if provided`);
+        }
         symbolIds.add(sym["id"]);
+        if (sym["wild"] === true) {
+          wildSymbolIds.add(sym["id"]);
+        }
       }
     }
   }
@@ -113,6 +120,8 @@ export function validateGameConfig(data: unknown): GameConfig {
         errors.push(`payouts[${String(i)}].symbolId must be a string`);
       } else if (symbolIds.size > 0 && !symbolIds.has(payout["symbolId"])) {
         errors.push(`payouts[${String(i)}] references unknown symbol '${payout["symbolId"]}'`);
+      } else if (wildSymbolIds.has(payout["symbolId"])) {
+        errors.push(`payouts[${String(i)}] references wild symbol '${payout["symbolId"]}' (wild symbols cannot have payouts)`);
       }
       if (
         typeof payout["count"] !== "number" ||

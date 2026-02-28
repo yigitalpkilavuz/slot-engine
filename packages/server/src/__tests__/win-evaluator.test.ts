@@ -7,6 +7,8 @@ const PAYLINES: readonly Payline[] = [
   [0, 0, 0],
 ];
 
+const NO_WILDS = new Set<string>();
+
 const PAYOUTS: readonly PayoutRule[] = [
   { symbolId: "cherry", count: 2, multiplier: 2 },
   { symbolId: "cherry", count: 3, multiplier: 10 },
@@ -21,7 +23,7 @@ describe("evaluateWins", () => {
       ["seven", "bar", "cherry"],
     ];
 
-    const wins = evaluateWins(grid, PAYLINES, PAYOUTS, 100);
+    const wins = evaluateWins(grid, PAYLINES, PAYOUTS, 100, NO_WILDS);
     expect(wins).toHaveLength(0);
   });
 
@@ -32,7 +34,7 @@ describe("evaluateWins", () => {
       ["seven", "seven", "seven"],
     ];
 
-    const wins = evaluateWins(grid, PAYLINES, PAYOUTS, 100);
+    const wins = evaluateWins(grid, PAYLINES, PAYOUTS, 100, NO_WILDS);
     expect(wins).toHaveLength(1);
     expect(wins[0]).toEqual({
       paylineIndex: 0,
@@ -49,7 +51,7 @@ describe("evaluateWins", () => {
       ["seven", "seven", "seven"],
     ];
 
-    const wins = evaluateWins(grid, [[1, 1, 1]], PAYOUTS, 100);
+    const wins = evaluateWins(grid, [[1, 1, 1]], PAYOUTS, 100, NO_WILDS);
     expect(wins[0]!.payout).toBe(1000);
     expect(wins[0]!.count).toBe(3);
   });
@@ -61,7 +63,7 @@ describe("evaluateWins", () => {
       ["seven", "seven", "seven"],
     ];
 
-    const wins = evaluateWins(grid, [[0, 0, 0]], PAYOUTS, 100);
+    const wins = evaluateWins(grid, [[0, 0, 0]], PAYOUTS, 100, NO_WILDS);
     expect(wins).toHaveLength(0);
   });
 
@@ -72,7 +74,7 @@ describe("evaluateWins", () => {
       ["seven", "seven", "seven"],
     ];
 
-    const wins = evaluateWins(grid, [[0, 0, 0]], PAYOUTS, 100);
+    const wins = evaluateWins(grid, [[0, 0, 0]], PAYOUTS, 100, NO_WILDS);
     expect(wins).toHaveLength(1);
     expect(wins[0]).toEqual({
       paylineIndex: 0,
@@ -89,7 +91,7 @@ describe("evaluateWins", () => {
       ["cherry", "cherry", "cherry"],
     ];
 
-    const wins = evaluateWins(grid, [[0, 0, 0]], PAYOUTS, 50);
+    const wins = evaluateWins(grid, [[0, 0, 0]], PAYOUTS, 50, NO_WILDS);
     expect(wins[0]!.payout).toBe(2500);
   });
 
@@ -100,7 +102,7 @@ describe("evaluateWins", () => {
       ["bar", "bar", "bar"],
     ];
 
-    const wins = evaluateWins(grid, PAYLINES, PAYOUTS, 100);
+    const wins = evaluateWins(grid, PAYLINES, PAYOUTS, 100, NO_WILDS);
     expect(wins).toHaveLength(2);
   });
 
@@ -111,7 +113,89 @@ describe("evaluateWins", () => {
       ["bar", "bar", "bar"],
     ];
 
-    const wins = evaluateWins(grid, [[0, 0, 0]], PAYOUTS, 100);
+    const wins = evaluateWins(grid, [[0, 0, 0]], PAYOUTS, 100, NO_WILDS);
     expect(wins).toHaveLength(0);
+  });
+});
+
+const WILD_IDS = new Set(["wild"]);
+
+describe("evaluateWins with wilds", () => {
+  it("wild substitutes for matching symbol in the middle", () => {
+    const grid = [
+      ["cherry", "wild", "cherry"],
+      ["bar", "bar", "bar"],
+      ["seven", "seven", "seven"],
+    ];
+
+    const wins = evaluateWins(grid, [[0, 0, 0]], PAYOUTS, 100, WILD_IDS);
+    expect(wins).toHaveLength(1);
+    expect(wins[0]!.symbolId).toBe("cherry");
+    expect(wins[0]!.count).toBe(3);
+    expect(wins[0]!.payout).toBe(1000);
+  });
+
+  it("wild at start uses first non-wild as base symbol", () => {
+    const grid = [
+      ["wild", "cherry", "cherry"],
+      ["bar", "bar", "bar"],
+      ["seven", "seven", "seven"],
+    ];
+
+    const wins = evaluateWins(grid, [[0, 0, 0]], PAYOUTS, 100, WILD_IDS);
+    expect(wins).toHaveLength(1);
+    expect(wins[0]!.symbolId).toBe("cherry");
+    expect(wins[0]!.count).toBe(3);
+  });
+
+  it("multiple consecutive wilds count toward match", () => {
+    const grid = [
+      ["cherry", "wild", "wild"],
+      ["bar", "bar", "bar"],
+      ["seven", "seven", "seven"],
+    ];
+
+    const wins = evaluateWins(grid, [[0, 0, 0]], PAYOUTS, 100, WILD_IDS);
+    expect(wins).toHaveLength(1);
+    expect(wins[0]!.symbolId).toBe("cherry");
+    expect(wins[0]!.count).toBe(3);
+  });
+
+  it("all wilds produces no win", () => {
+    const grid = [
+      ["wild", "wild", "wild"],
+      ["bar", "bar", "bar"],
+      ["seven", "seven", "seven"],
+    ];
+
+    const wins = evaluateWins(grid, [[0, 0, 0]], PAYOUTS, 100, WILD_IDS);
+    expect(wins).toHaveLength(0);
+  });
+
+  it("wild breaks on non-matching symbol", () => {
+    const grid = [
+      ["cherry", "wild", "bar"],
+      ["bar", "bar", "bar"],
+      ["seven", "seven", "seven"],
+    ];
+
+    const wins = evaluateWins(grid, [[0, 0, 0]], PAYOUTS, 100, WILD_IDS);
+    expect(wins).toHaveLength(1);
+    expect(wins[0]!.symbolId).toBe("cherry");
+    expect(wins[0]!.count).toBe(2);
+    expect(wins[0]!.payout).toBe(200);
+  });
+
+  it("wild at start followed by different non-wilds uses first non-wild", () => {
+    const grid = [
+      ["wild", "wild", "seven"],
+      ["bar", "bar", "bar"],
+      ["cherry", "cherry", "cherry"],
+    ];
+
+    const wins = evaluateWins(grid, [[0, 0, 0]], PAYOUTS, 100, WILD_IDS);
+    expect(wins).toHaveLength(1);
+    expect(wins[0]!.symbolId).toBe("seven");
+    expect(wins[0]!.count).toBe(3);
   });
 });

@@ -6,6 +6,9 @@ async function main(): Promise<void> {
     throw new Error("Missing #app container element");
   }
 
+  // Wait for Google Fonts to load before PixiJS renders text
+  await document.fonts.ready;
+
   await createApp(container);
 }
 

@@ -3,42 +3,46 @@ import type { ClientGameConfig } from "../api/api-client.js";
 import { getSymbolColor } from "./symbol-cell.js";
 
 const PANEL_WIDTH = 620;
-const PANEL_COLOR = 0x1a1a2e;
-const OVERLAY_ALPHA = 0.85;
+const PANEL_COLOR = 0x0c1424;
+const PANEL_BORDER_COLOR = 0x1a2d45;
+const OVERLAY_ALPHA = 0.88;
 const ROW_HEIGHT = 36;
 const SWATCH_SIZE = 24;
+const GOLD = 0xd4a846;
+const GOLD_BRIGHT = 0xf0c850;
 
 const TITLE_STYLE = new TextStyle({
-  fontFamily: "Arial",
+  fontFamily: ["Cinzel", "Georgia", "serif"],
   fontSize: 22,
-  fontWeight: "bold",
-  fill: 0xffffff,
+  fontWeight: "700",
+  fill: GOLD,
 });
 
 const HEADER_STYLE = new TextStyle({
-  fontFamily: "Arial",
-  fontSize: 14,
-  fontWeight: "bold",
-  fill: 0x95a5a6,
+  fontFamily: ["DM Sans", "Helvetica Neue", "sans-serif"],
+  fontSize: 13,
+  fontWeight: "700",
+  fill: 0x7c8a9a,
+  letterSpacing: 1,
 });
 
 const CELL_TEXT_STYLE = new TextStyle({
-  fontFamily: "Arial",
+  fontFamily: ["DM Sans", "Helvetica Neue", "sans-serif"],
   fontSize: 16,
-  fill: 0xffffff,
+  fill: 0xf0e6d3,
 });
 
 const MULTIPLIER_STYLE = new TextStyle({
-  fontFamily: "Arial",
+  fontFamily: ["DM Sans", "Helvetica Neue", "sans-serif"],
   fontSize: 16,
   fontWeight: "bold",
-  fill: 0xf1c40f,
+  fill: GOLD_BRIGHT,
 });
 
 const CLOSE_STYLE = new TextStyle({
-  fontFamily: "Arial",
-  fontSize: 22,
-  fill: 0xe74c3c,
+  fontFamily: ["DM Sans", "Helvetica Neue", "sans-serif"],
+  fontSize: 20,
+  fill: 0x7c8a9a,
 });
 
 export function createPaytableOverlay(
@@ -65,12 +69,19 @@ export function createPaytableOverlay(
   const panelX = (canvasWidth - PANEL_WIDTH) / 2;
   const panelY = (canvasHeight - panelHeight) / 2;
 
-  // Panel background
+  // Panel background with border
   const panel = new Graphics();
-  panel.roundRect(panelX, panelY, PANEL_WIDTH, panelHeight, 12);
+  panel.roundRect(panelX, panelY, PANEL_WIDTH, panelHeight, 14);
   panel.fill({ color: PANEL_COLOR });
+  panel.stroke({ width: 1.5, color: PANEL_BORDER_COLOR });
   panel.eventMode = "static"; // prevent clicks from reaching backdrop
   overlay.addChild(panel);
+
+  // Gold accent line at top of panel
+  const accent = new Graphics();
+  accent.roundRect(panelX + 20, panelY, PANEL_WIDTH - 40, 2, 1);
+  accent.fill({ color: GOLD, alpha: 0.4 });
+  overlay.addChild(accent);
 
   // Title
   const title = new Text({ text: "PAYTABLE", style: TITLE_STYLE });
@@ -104,15 +115,23 @@ export function createPaytableOverlay(
   addText(overlay, "\u00d74", HEADER_STYLE, col4, headerY);
   addText(overlay, "\u00d75", HEADER_STYLE, col5, headerY);
 
+  // Subtle header separator
+  const headerLine = new Graphics();
+  headerLine.moveTo(panelX + 20, headerY + 22);
+  headerLine.lineTo(panelX + PANEL_WIDTH - 20, headerY + 22);
+  headerLine.stroke({ width: 1, color: 0x1a2d45, alpha: 0.6 });
+  overlay.addChild(headerLine);
+
   // Symbol rows
   for (let i = 0; i < config.symbols.length; i++) {
     const sym = config.symbols[i]!;
-    const rowY = headerY + 28 + i * ROW_HEIGHT;
+    const rowY = headerY + 32 + i * ROW_HEIGHT;
 
-    // Color swatch
+    // Color swatch with border
     const swatch = new Graphics();
-    swatch.roundRect(panelX + 24, rowY - 2, SWATCH_SIZE, SWATCH_SIZE, 4);
+    swatch.roundRect(panelX + 24, rowY - 2, SWATCH_SIZE, SWATCH_SIZE, 5);
     swatch.fill({ color: getSymbolColor(sym.id) });
+    swatch.stroke({ width: 1, color: 0x1e293b, alpha: 0.5 });
     overlay.addChild(swatch);
 
     // Symbol name
@@ -148,7 +167,7 @@ function formatMult(
   count: number,
 ): string {
   const mult = payouts?.get(count);
-  return mult !== undefined ? `${String(mult)}x` : "-";
+  return mult !== undefined ? `${String(mult)}x` : "\u2014";
 }
 
 function addText(
