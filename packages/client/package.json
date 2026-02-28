@@ -3,18 +3,17 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
-    }
-  },
   "scripts": {
-    "build": "tsc"
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@slot-engine/shared": "workspace:*"
+    "@slot-engine/shared": "workspace:*",
+    "pixi.js": "^8.16.0"
+  },
+  "devDependencies": {
+    "vite": "^7.3.1"
   }
 }
