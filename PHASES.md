@@ -28,7 +28,7 @@ HTTP server, spin endpoint, session/balance management. Consumes the math engine
 
 PixiJS v8 setup, asset loading pipeline, basic rendering loop. No game logic — just a working canvas.
 
-- [ ] Status: Not started
+- [x] Status: Complete
 
 ## Phase 5 — Client Game UI
 
