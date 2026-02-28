@@ -16,7 +16,7 @@ Core TypeScript types (symbols, reels, paylines, payouts). A JSON config schema 
 
 RNG, reel strip spinning, symbol evaluation, payout calculation. Pure logic, no network layer yet. Unit testable.
 
-- [ ] Status: Not started
+- [x] Status: Complete
 
 ## Phase 3 — Server API
 

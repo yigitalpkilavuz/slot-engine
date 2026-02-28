@@ -10,13 +10,16 @@
     "build": "pnpm -r run build",
     "lint": "eslint .",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "test": "vitest run"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@types/node": "^25.3.2",
     "eslint": "^10.0.2",
     "prettier": "^3.8.1",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.56.1"
+    "typescript-eslint": "^8.56.1",
+    "vitest": "^4.0.18"
   }
 }

@@ -13,6 +13,7 @@ export default tseslint.config(
     },
     rules: {
       "@typescript-eslint/no-explicit-any": "error",
+      "@typescript-eslint/no-non-null-assertion": "off",
       "@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_" }],
       "no-restricted-syntax": [
         "error",
@@ -24,6 +25,6 @@ export default tseslint.config(
     },
   },
   {
-    ignores: ["**/dist/**", "**/node_modules/**", "eslint.config.js"],
+    ignores: ["**/dist/**", "**/node_modules/**", "eslint.config.js", "vitest.config.ts"],
   },
 );
