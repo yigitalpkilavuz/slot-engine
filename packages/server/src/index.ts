@@ -3,3 +3,8 @@ export { CryptoRng } from "./rng.js";
 export { spinReels } from "./reel-spinner.js";
 export { evaluateWins } from "./win-evaluator.js";
 export { spin } from "./spin.js";
+export type { Session, SessionStore } from "./session/session-store.js";
+export { InMemorySessionStore } from "./session/session-store.js";
+export { GameRegistry } from "./game-registry.js";
+export { ApiError } from "./errors/api-error.js";
+export { createApp } from "./app.js";

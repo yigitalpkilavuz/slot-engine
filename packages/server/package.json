@@ -13,9 +13,12 @@
   },
   "scripts": {
     "build": "tsc",
+    "start": "node dist/server.js",
     "test": "vitest run"
   },
   "dependencies": {
-    "@slot-engine/shared": "workspace:*"
+    "@fastify/cors": "^11.2.0",
+    "@slot-engine/shared": "workspace:*",
+    "fastify": "^5.7.4"
   }
 }
