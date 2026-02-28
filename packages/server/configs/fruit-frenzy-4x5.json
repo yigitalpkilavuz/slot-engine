@@ -1,0 +1,94 @@
+{
+  "id": "fruit-frenzy-4x5",
+  "name": "Fruit Frenzy 4x5",
+  "rows": 4,
+  "symbols": [
+    { "id": "strawberry", "name": "Strawberry" },
+    { "id": "watermelon", "name": "Watermelon" },
+    { "id": "grape", "name": "Grape" },
+    { "id": "banana", "name": "Banana" },
+    { "id": "pineapple", "name": "Pineapple" },
+    { "id": "coconut", "name": "Coconut" },
+    { "id": "diamond", "name": "Diamond" },
+    { "id": "star", "name": "Star" }
+  ],
+  "reels": [
+    [
+      "strawberry", "watermelon", "grape", "banana",
+      "pineapple", "coconut", "strawberry", "watermelon",
+      "grape", "banana", "strawberry", "watermelon",
+      "grape", "banana", "pineapple", "coconut",
+      "strawberry", "watermelon", "grape", "banana",
+      "diamond", "star"
+    ],
+    [
+      "watermelon", "grape", "banana", "pineapple",
+      "coconut", "strawberry", "watermelon", "grape",
+      "banana", "strawberry", "watermelon", "grape",
+      "banana", "pineapple", "coconut", "strawberry",
+      "watermelon", "grape", "banana", "star",
+      "diamond", "strawberry"
+    ],
+    [
+      "grape", "banana", "pineapple", "coconut",
+      "strawberry", "watermelon", "grape", "banana",
+      "strawberry", "watermelon", "grape", "banana",
+      "pineapple", "coconut", "strawberry", "watermelon",
+      "grape", "banana", "diamond", "star",
+      "strawberry", "watermelon"
+    ],
+    [
+      "banana", "pineapple", "coconut", "strawberry",
+      "watermelon", "grape", "banana", "strawberry",
+      "watermelon", "grape", "banana", "pineapple",
+      "coconut", "strawberry", "watermelon", "grape",
+      "banana", "diamond", "star", "strawberry",
+      "watermelon", "grape"
+    ],
+    [
+      "pineapple", "coconut", "strawberry", "watermelon",
+      "grape", "banana", "strawberry", "watermelon",
+      "grape", "banana", "pineapple", "coconut",
+      "strawberry", "watermelon", "grape", "banana",
+      "diamond", "star", "strawberry", "watermelon",
+      "grape", "banana"
+    ]
+  ],
+  "paylines": [
+    [1, 1, 1, 1, 1],
+    [0, 0, 0, 0, 0],
+    [3, 3, 3, 3, 3],
+    [0, 1, 2, 1, 0],
+    [3, 2, 1, 2, 3],
+    [0, 0, 1, 0, 0],
+    [3, 3, 2, 3, 3]
+  ],
+  "payouts": [
+    { "symbolId": "strawberry", "count": 3, "multiplier": 4 },
+    { "symbolId": "strawberry", "count": 4, "multiplier": 12 },
+    { "symbolId": "strawberry", "count": 5, "multiplier": 40 },
+    { "symbolId": "watermelon", "count": 3, "multiplier": 4 },
+    { "symbolId": "watermelon", "count": 4, "multiplier": 12 },
+    { "symbolId": "watermelon", "count": 5, "multiplier": 40 },
+    { "symbolId": "grape", "count": 3, "multiplier": 8 },
+    { "symbolId": "grape", "count": 4, "multiplier": 20 },
+    { "symbolId": "grape", "count": 5, "multiplier": 60 },
+    { "symbolId": "banana", "count": 3, "multiplier": 8 },
+    { "symbolId": "banana", "count": 4, "multiplier": 20 },
+    { "symbolId": "banana", "count": 5, "multiplier": 60 },
+    { "symbolId": "pineapple", "count": 3, "multiplier": 15 },
+    { "symbolId": "pineapple", "count": 4, "multiplier": 40 },
+    { "symbolId": "pineapple", "count": 5, "multiplier": 120 },
+    { "symbolId": "coconut", "count": 3, "multiplier": 15 },
+    { "symbolId": "coconut", "count": 4, "multiplier": 40 },
+    { "symbolId": "coconut", "count": 5, "multiplier": 120 },
+    { "symbolId": "diamond", "count": 3, "multiplier": 40 },
+    { "symbolId": "diamond", "count": 4, "multiplier": 120 },
+    { "symbolId": "diamond", "count": 5, "multiplier": 400 },
+    { "symbolId": "star", "count": 3, "multiplier": 50 },
+    { "symbolId": "star", "count": 4, "multiplier": 150 },
+    { "symbolId": "star", "count": 5, "multiplier": 500 }
+  ],
+  "betOptions": [20, 50, 100, 200, 500, 1000],
+  "defaultBet": 50
+}

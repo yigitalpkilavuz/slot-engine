@@ -12,6 +12,14 @@ const SYMBOL_COLORS: ReadonlyMap<string, number> = new Map([
   ["bell", 0xf39c12],
   ["bar", 0x2ecc71],
   ["seven", 0x3498db],
+  ["strawberry", 0xc0392b],
+  ["watermelon", 0x27ae60],
+  ["grape", 0x8e44ad],
+  ["banana", 0xf4d03f],
+  ["pineapple", 0xd4ac0d],
+  ["coconut", 0x8d6e63],
+  ["diamond", 0x00bcd4],
+  ["star", 0xffc107],
 ]);
 
 const SYMBOL_LABELS: ReadonlyMap<string, string> = new Map([
@@ -22,6 +30,14 @@ const SYMBOL_LABELS: ReadonlyMap<string, string> = new Map([
   ["bell", "BELL"],
   ["bar", "BAR"],
   ["seven", "7"],
+  ["strawberry", "STRW"],
+  ["watermelon", "WTML"],
+  ["grape", "GRAPE"],
+  ["banana", "BANA"],
+  ["pineapple", "PINE"],
+  ["coconut", "COCO"],
+  ["diamond", "\u2666"],
+  ["star", "\u2605"],
 ]);
 
 const DEFAULT_COLOR = 0x7f8c8d;
@@ -58,8 +74,12 @@ export function updateSymbolCell(cell: Container, symbolId: string): void {
   label.text = getLabel(symbolId);
 }
 
+export function getSymbolColor(symbolId: string): number {
+  return SYMBOL_COLORS.get(symbolId) ?? DEFAULT_COLOR;
+}
+
 function drawCellBackground(bg: Graphics, symbolId: string): void {
-  const color = SYMBOL_COLORS.get(symbolId) ?? DEFAULT_COLOR;
+  const color = getSymbolColor(symbolId);
   bg.roundRect(0, 0, CELL_WIDTH, CELL_HEIGHT, CELL_CORNER_RADIUS);
   bg.fill({ color });
 }

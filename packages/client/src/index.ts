@@ -4,6 +4,7 @@ export type { AssetManifest, AssetBundle, AssetEntry } from "./assets/asset-mani
 export { PLACEHOLDER_MANIFEST } from "./assets/asset-manifest.js";
 export { buildPlaceholderScene } from "./scene/placeholder-scene.js";
 export { buildGameScene } from "./scene/game-scene.js";
+export { buildGameSelectScene } from "./scene/game-select-scene.js";
 export { GameState } from "./state/game-state.js";
 export {
   createSession,
