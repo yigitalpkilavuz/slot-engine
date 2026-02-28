@@ -10,7 +10,7 @@ Monorepo setup: `pnpm-workspace.yaml`, shared `tsconfig`, ESLint + Prettier conf
 
 Core TypeScript types (symbols, reels, paylines, payouts). A JSON config schema for defining a slot game. Config loader + validation.
 
-- [ ] Status: Not started
+- [x] Status: Complete
 
 ## Phase 2 — Math Engine (Server)
 
