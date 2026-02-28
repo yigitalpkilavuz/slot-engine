@@ -8,6 +8,7 @@ export class GameState {
   private _gameConfig: ClientGameConfig | null = null;
   private _isSpinning = false;
   private _lastResult: SpinResult | null = null;
+  private _freeSpinsRemaining = 0;
 
   get sessionId(): string {
     return this._sessionId;
@@ -33,8 +34,18 @@ export class GameState {
     return this._lastResult;
   }
 
+  get freeSpinsRemaining(): number {
+    return this._freeSpinsRemaining;
+  }
+
+  get inFreeSpins(): boolean {
+    return this._freeSpinsRemaining > 0;
+  }
+
   get canSpin(): boolean {
-    return !this._isSpinning && this._balance >= this._currentBet && this._currentBet > 0;
+    if (this._isSpinning) return false;
+    if (this._freeSpinsRemaining > 0) return true;
+    return this._balance >= this._currentBet && this._currentBet > 0;
   }
 
   get reelCount(): number {
@@ -63,9 +74,10 @@ export class GameState {
     this._isSpinning = spinning;
   }
 
-  setSpinResult(result: SpinResult, balance: number): void {
+  setSpinResult(result: SpinResult, balance: number, freeSpinsRemaining: number): void {
     this._lastResult = result;
     this._balance = balance;
+    this._freeSpinsRemaining = freeSpinsRemaining;
   }
 
   clearLastResult(): void {

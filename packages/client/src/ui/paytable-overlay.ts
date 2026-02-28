@@ -1,4 +1,5 @@
 import { Container, Graphics, Text, TextStyle } from "pixi.js";
+import type { ScatterRule } from "@slot-engine/shared";
 import type { ClientGameConfig } from "../api/api-client.js";
 import { getSymbolColor } from "./symbol-cell.js";
 
@@ -64,8 +65,10 @@ export function createPaytableOverlay(
 
   // Build payout lookup
   const payoutMap = buildPayoutMap(config);
+  const scatterRules = config.scatterRules ?? [];
 
-  const panelHeight = 80 + config.symbols.length * ROW_HEIGHT + 40;
+  const scatterSectionHeight = scatterRules.length > 0 ? 40 + scatterRules.length * ROW_HEIGHT : 0;
+  const panelHeight = 80 + config.symbols.length * ROW_HEIGHT + scatterSectionHeight + 40;
   const panelX = (canvasWidth - PANEL_WIDTH) / 2;
   const panelY = (canvasHeight - panelHeight) / 2;
 
@@ -144,6 +147,27 @@ export function createPaytableOverlay(
     addText(overlay, formatMult(payouts, 5), MULTIPLIER_STYLE, col5, rowY);
   }
 
+  // Scatter rules section
+  if (scatterRules.length > 0) {
+    const scatterY = headerY + 32 + config.symbols.length * ROW_HEIGHT + 10;
+
+    const scatterLine = new Graphics();
+    scatterLine.moveTo(panelX + 20, scatterY);
+    scatterLine.lineTo(panelX + PANEL_WIDTH - 20, scatterY);
+    scatterLine.stroke({ width: 1, color: 0x1a2d45, alpha: 0.6 });
+    overlay.addChild(scatterLine);
+
+    addText(overlay, "SCATTER BONUS", HEADER_STYLE, colName, scatterY + 8);
+
+    for (let i = 0; i < scatterRules.length; i++) {
+      const rule = scatterRules[i]!;
+      const ruleY = scatterY + 30 + i * ROW_HEIGHT;
+
+      addText(overlay, `\u00d7${String(rule.count)} scatters`, CELL_TEXT_STYLE, colName, ruleY);
+      addText(overlay, formatScatterReward(rule), MULTIPLIER_STYLE, col3, ruleY);
+    }
+  }
+
   return overlay;
 }
 
@@ -168,6 +192,17 @@ function formatMult(
 ): string {
   const mult = payouts?.get(count);
   return mult !== undefined ? `${String(mult)}x` : "\u2014";
+}
+
+function formatScatterReward(rule: ScatterRule): string {
+  const parts: string[] = [];
+  if (rule.multiplier > 0) {
+    parts.push(`${String(rule.multiplier)}x`);
+  }
+  if (rule.freeSpins > 0) {
+    parts.push(`${String(rule.freeSpins)} free spins`);
+  }
+  return parts.join(" + ") || "\u2014";
 }
 
 function addText(

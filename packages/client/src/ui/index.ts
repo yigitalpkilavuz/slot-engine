@@ -5,6 +5,7 @@ export { createBalanceDisplay, updateBalanceDisplay, formatCents } from "./balan
 export { createBetSelector, updateBetSelector } from "./bet-selector.js";
 export { createSpinButton, updateSpinButton } from "./spin-button.js";
 export { createWinDisplay, showWin, clearWin } from "./win-display.js";
+export { createFreeSpinsDisplay, updateFreeSpinsDisplay } from "./free-spins-display.js";
 export { createHud } from "./hud.js";
 export type { HudComponents } from "./hud.js";
 export { createPaytableOverlay } from "./paytable-overlay.js";

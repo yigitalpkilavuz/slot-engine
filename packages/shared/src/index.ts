@@ -3,6 +3,7 @@ export type {
   ReelStrip,
   Payline,
   PayoutRule,
+  ScatterRule,
   GameConfig,
   Win,
   SpinResult,

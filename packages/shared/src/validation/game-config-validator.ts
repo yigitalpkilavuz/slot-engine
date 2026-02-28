@@ -40,6 +40,7 @@ export function validateGameConfig(data: unknown): GameConfig {
 
   const symbolIds = new Set<string>();
   const wildSymbolIds = new Set<string>();
+  const scatterSymbolIds = new Set<string>();
   if (Array.isArray(data["symbols"])) {
     for (const [i, sym] of data["symbols"].entries()) {
       if (
@@ -56,9 +57,18 @@ export function validateGameConfig(data: unknown): GameConfig {
         if ("wild" in sym && typeof sym["wild"] !== "boolean") {
           errors.push(`symbols[${String(i)}].wild must be a boolean if provided`);
         }
+        if ("scatter" in sym && typeof sym["scatter"] !== "boolean") {
+          errors.push(`symbols[${String(i)}].scatter must be a boolean if provided`);
+        }
+        if (sym["wild"] === true && sym["scatter"] === true) {
+          errors.push(`symbols[${String(i)}] cannot be both wild and scatter`);
+        }
         symbolIds.add(sym["id"]);
         if (sym["wild"] === true) {
           wildSymbolIds.add(sym["id"]);
+        }
+        if (sym["scatter"] === true) {
+          scatterSymbolIds.add(sym["id"]);
         }
       }
     }
@@ -122,6 +132,8 @@ export function validateGameConfig(data: unknown): GameConfig {
         errors.push(`payouts[${String(i)}] references unknown symbol '${payout["symbolId"]}'`);
       } else if (wildSymbolIds.has(payout["symbolId"])) {
         errors.push(`payouts[${String(i)}] references wild symbol '${payout["symbolId"]}' (wild symbols cannot have payouts)`);
+      } else if (scatterSymbolIds.has(payout["symbolId"])) {
+        errors.push(`payouts[${String(i)}] references scatter symbol '${payout["symbolId"]}' (scatter symbols use scatterRules)`);
       }
       if (
         typeof payout["count"] !== "number" ||
@@ -140,6 +152,48 @@ export function validateGameConfig(data: unknown): GameConfig {
         payout["multiplier"] < 1
       ) {
         errors.push(`payouts[${String(i)}].multiplier must be a positive integer`);
+      }
+    }
+  }
+
+  const scatterRules = data["scatterRules"];
+  if (scatterRules !== undefined) {
+    if (!Array.isArray(scatterRules)) {
+      errors.push("'scatterRules' must be an array if provided");
+    } else {
+      for (const [i, rule] of scatterRules.entries()) {
+        if (!isRecord(rule)) {
+          errors.push(`scatterRules[${String(i)}] must be an object`);
+          continue;
+        }
+        if (typeof rule["symbolId"] !== "string") {
+          errors.push(`scatterRules[${String(i)}].symbolId must be a string`);
+        } else if (symbolIds.size > 0 && !symbolIds.has(rule["symbolId"])) {
+          errors.push(`scatterRules[${String(i)}] references unknown symbol '${rule["symbolId"]}'`);
+        } else if (!scatterSymbolIds.has(rule["symbolId"])) {
+          errors.push(`scatterRules[${String(i)}] references non-scatter symbol '${rule["symbolId"]}'`);
+        }
+        if (
+          typeof rule["count"] !== "number" ||
+          !Number.isInteger(rule["count"]) ||
+          rule["count"] < 1
+        ) {
+          errors.push(`scatterRules[${String(i)}].count must be a positive integer`);
+        }
+        if (
+          typeof rule["multiplier"] !== "number" ||
+          !Number.isInteger(rule["multiplier"]) ||
+          rule["multiplier"] < 0
+        ) {
+          errors.push(`scatterRules[${String(i)}].multiplier must be a non-negative integer`);
+        }
+        if (
+          typeof rule["freeSpins"] !== "number" ||
+          !Number.isInteger(rule["freeSpins"]) ||
+          rule["freeSpins"] < 0
+        ) {
+          errors.push(`scatterRules[${String(i)}].freeSpins must be a non-negative integer`);
+        }
       }
     }
   }

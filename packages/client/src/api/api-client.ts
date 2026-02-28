@@ -20,6 +20,7 @@ export interface SpinRequest {
 export interface SpinResponse {
   readonly result: SpinResult;
   readonly balance: number;
+  readonly freeSpinsRemaining: number;
 }
 
 export class ApiClientError extends Error {

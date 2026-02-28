@@ -52,4 +52,37 @@ describe("InMemorySessionStore", () => {
 
     expect(() => store.updateBalance("nonexistent", 100)).toThrow("Session not found");
   });
+
+  it("creates session with zero free spins by default", () => {
+    const store = new InMemorySessionStore();
+    const session = store.create(10000);
+
+    expect(session.freeSpinsRemaining).toBe(0);
+    expect(session.freeSpinBet).toBe(0);
+  });
+
+  it("sets free spins remaining and bet", () => {
+    const store = new InMemorySessionStore();
+    const session = store.create(10000);
+    const updated = store.setFreeSpins(session.id, 10, 25);
+
+    expect(updated.freeSpinsRemaining).toBe(10);
+    expect(updated.freeSpinBet).toBe(25);
+  });
+
+  it("persists free spin state", () => {
+    const store = new InMemorySessionStore();
+    const session = store.create(10000);
+    store.setFreeSpins(session.id, 5, 50);
+    const retrieved = store.get(session.id);
+
+    expect(retrieved!.freeSpinsRemaining).toBe(5);
+    expect(retrieved!.freeSpinBet).toBe(50);
+  });
+
+  it("throws when setting free spins for unknown session", () => {
+    const store = new InMemorySessionStore();
+
+    expect(() => store.setFreeSpins("nonexistent", 10, 25)).toThrow("Session not found");
+  });
 });

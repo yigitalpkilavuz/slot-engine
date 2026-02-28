@@ -17,6 +17,7 @@ import { updateBalanceDisplay } from "../ui/balance-display.js";
 import { updateBetSelector } from "../ui/bet-selector.js";
 import { updateSpinButton } from "../ui/spin-button.js";
 import { createWinDisplay, showWin, clearWin } from "../ui/win-display.js";
+import { createFreeSpinsDisplay, updateFreeSpinsDisplay } from "../ui/free-spins-display.js";
 import { createPaytableOverlay } from "../ui/paytable-overlay.js";
 
 const MIN_SPIN_DURATION_MS = 600;
@@ -83,6 +84,9 @@ export function buildGameScene(
   reelGrid.y = 60;
   scene.addChild(reelGrid);
 
+  // Build scatter IDs set for highlight logic
+  const scatterIds = new Set(config.symbols.filter((s) => s.scatter === true).map((s) => s.id));
+
   // Set initial display with cycling symbols
   const initialGrid = buildInitialGrid(config.symbols.map((s) => s.id), reelCount, rowCount);
   setGridSymbols(reelGrid, initialGrid);
@@ -91,6 +95,11 @@ export function buildGameScene(
   const winDisplay = createWinDisplay(canvasWidth);
   winDisplay.y = Math.min(60 + gridPanelHeight + 14, canvasHeight - 100);
   scene.addChild(winDisplay);
+
+  // Free spins display — positioned between win display and HUD
+  const freeSpinsDisplay = createFreeSpinsDisplay(canvasWidth);
+  freeSpinsDisplay.y = Math.min(60 + gridPanelHeight + 46, canvasHeight - 72);
+  scene.addChild(freeSpinsDisplay);
 
   // Paytable overlay toggle
   let paytableVisible = false;
@@ -152,14 +161,15 @@ export function buildGameScene(
 
     try {
       const response = await spinPromise;
-      gameState.setSpinResult(response.result, response.balance);
+      gameState.setSpinResult(response.result, response.balance, response.freeSpinsRemaining);
     } catch (error: unknown) {
       console.error("Spin failed:", error);
       await stopGridSpin(reelGrid, initialGrid, ticker);
       gameState.setSpinning(false);
-      setBackEnabled(true);
+      updateFreeSpinsDisplay(freeSpinsDisplay, gameState.freeSpinsRemaining);
+      setBackEnabled(!gameState.inFreeSpins);
       updateSpinButton(hud.spinButton, gameState.canSpin);
-      updateBetSelector(hud.betSelector, gameState.currentBet, true);
+      updateBetSelector(hud.betSelector, gameState.currentBet, !gameState.inFreeSpins);
       return;
     }
 
@@ -174,8 +184,9 @@ export function buildGameScene(
     // Stop reels with stagger
     await stopGridSpin(reelGrid, result.grid, ticker);
 
-    // Update balance
+    // Update balance and free spins
     updateBalanceDisplay(hud.balanceDisplay, gameState.balance);
+    updateFreeSpinsDisplay(freeSpinsDisplay, gameState.freeSpinsRemaining);
 
     // Show wins
     if (result.totalPayout > 0) {
@@ -185,10 +196,20 @@ export function buildGameScene(
         result.wins,
         config.paylines,
         { x: reelGrid.x, y: reelGrid.y },
+        result.grid,
+        scatterIds,
       );
     }
 
     gameState.setSpinning(false);
+
+    // During free spins: auto-spin after delay, keep controls locked
+    if (gameState.inFreeSpins) {
+      await delay(1500);
+      void handleSpin();
+      return;
+    }
+
     setBackEnabled(true);
     updateSpinButton(hud.spinButton, gameState.canSpin);
     updateBetSelector(hud.betSelector, gameState.currentBet, true);

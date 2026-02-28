@@ -112,3 +112,62 @@ describe("spin with wild symbols", () => {
     expect(result.totalPayout).toBe(100);
   });
 });
+
+const SCATTER_CONFIG: GameConfig = {
+  id: "scatter-test",
+  name: "Scatter Test",
+  rows: 3,
+  symbols: [
+    { id: "cherry", name: "Cherry" },
+    { id: "bar", name: "Bar" },
+    { id: "scatter", name: "Scatter", scatter: true },
+  ],
+  reels: [
+    ["cherry", "bar", "cherry", "bar", "scatter"],
+    ["bar", "cherry", "bar", "cherry", "scatter"],
+    ["cherry", "bar", "cherry", "bar", "scatter"],
+  ],
+  paylines: [[0, 0, 0]],
+  payouts: [
+    { symbolId: "cherry", count: 3, multiplier: 10 },
+  ],
+  scatterRules: [
+    { symbolId: "scatter", count: 3, multiplier: 5, freeSpins: 10 },
+  ],
+  betOptions: [10],
+  defaultBet: 10,
+};
+
+describe("spin with scatter symbols", () => {
+  it("returns freeSpinsAwarded=0 when no scatters land", () => {
+    // Stop positions [0, 0, 0]:
+    // Reel 0: cherry, bar, cherry  |  Reel 1: bar, cherry, bar  |  Reel 2: cherry, bar, cherry
+    // Grid: row0=[cherry, bar, cherry], row1=[bar, cherry, bar], row2=[cherry, bar, cherry]
+    // 0 scatters on grid
+    const rng = new FixedRng([0, 0, 0]);
+    const result = spin(SCATTER_CONFIG, 10, rng);
+
+    expect(result.freeSpinsAwarded).toBe(0);
+  });
+
+  it("awards scatter win and free spins when enough scatters land", () => {
+    // Stop positions [2, 2, 2]:
+    // Reel 0: cherry, bar, scatter  |  Reel 1: bar, cherry, scatter  |  Reel 2: cherry, bar, scatter
+    // Grid: row0=[cherry, bar, cherry], row1=[bar, cherry, bar], row2=[scatter, scatter, scatter]
+    // 3 scatters on grid
+    const rng = new FixedRng([2, 2, 2]);
+    const result = spin(SCATTER_CONFIG, 10, rng);
+
+    expect(result.freeSpinsAwarded).toBe(10);
+    const scatterWin = result.wins.find((w) => w.paylineIndex === -1);
+    expect(scatterWin).toBeDefined();
+    expect(scatterWin!.payout).toBe(50); // 10 * 5
+  });
+
+  it("works with config that has no scatterRules (backward compat)", () => {
+    const rng = new FixedRng([0, 0, 0]);
+    const result = spin(TEST_CONFIG, 10, rng);
+
+    expect(result.freeSpinsAwarded).toBe(0);
+  });
+});

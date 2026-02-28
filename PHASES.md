@@ -46,7 +46,7 @@ Two complete game configs (Classic 3x5, Fruit Frenzy 4x5), game selection screen
 
 Wild symbol type that substitutes for any other symbol during win evaluation. Config-driven: mark symbols as wild in game config. Update math engine, client rendering (distinct wild visual), and add a game config that uses wilds.
 
-- [ ] Status: Not started
+- [x] Status: Complete
 
 ## Phase 8 — Scatter Symbols & Free Spins
 

@@ -49,7 +49,7 @@ beforeEach(async () => {
 });
 
 describe("POST /api/spin", () => {
-  it("returns a spin result and updated balance", async () => {
+  it("returns a spin result with freeSpinsRemaining", async () => {
     const response = await app.inject({
       method: "POST",
       url: "/api/spin",
@@ -60,6 +60,7 @@ describe("POST /api/spin", () => {
     const body = response.json();
     expect(body.result.grid).toHaveLength(3);
     expect(typeof body.balance).toBe("number");
+    expect(typeof body.freeSpinsRemaining).toBe("number");
   });
 
   it("deducts bet from balance", async () => {
@@ -161,6 +162,40 @@ describe("POST /api/spin", () => {
     expect(response.statusCode).toBe(400);
     const body = response.json();
     expect(body.error).toContain("Insufficient balance");
+  });
+});
+
+describe("POST /api/spin (free spin mode)", () => {
+  it("does not deduct balance during free spins", async () => {
+    // Manually set up free spin state
+    const freeSpinStore = new InMemorySessionStore();
+    const freeSession = freeSpinStore.create(10000);
+    freeSpinStore.setFreeSpins(freeSession.id, 3, 50);
+
+    const freeGameRegistry = new GameRegistry();
+    freeGameRegistry.register(TEST_CONFIG);
+
+    const freeApp = createApp(
+      {
+        sessionStore: freeSpinStore,
+        gameRegistry: freeGameRegistry,
+        rng: new CryptoRng(),
+      },
+      { logger: false },
+    );
+
+    const response = await freeApp.inject({
+      method: "POST",
+      url: "/api/spin",
+      payload: { sessionId: freeSession.id, gameId: "test-game", bet: 10 },
+    });
+
+    expect(response.statusCode).toBe(200);
+    const body = response.json();
+    // Balance should be 10000 + whatever was won (no deduction)
+    expect(body.balance).toBe(10000 + body.result.totalPayout);
+    // Free spins should have decremented
+    expect(body.freeSpinsRemaining).toBeLessThanOrEqual(2);
   });
 });
 

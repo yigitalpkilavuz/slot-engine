@@ -135,6 +135,67 @@ describe("validateGameConfig", () => {
     expect(() => validateGameConfig(configWith({ symbols }))).toThrow("wild must be a boolean");
   });
 
+  it("accepts config with scatter symbols and scatter rules", () => {
+    const symbols = [
+      { id: "cherry", name: "Cherry" },
+      { id: "scatter", name: "Scatter", scatter: true },
+    ];
+    const reels = [
+      ["cherry", "scatter", "cherry"],
+      ["cherry", "cherry", "scatter"],
+      ["scatter", "cherry", "cherry"],
+    ];
+    const scatterRules = [
+      { symbolId: "scatter", count: 3, multiplier: 5, freeSpins: 10 },
+    ];
+    const result = validateGameConfig(
+      configWith({ symbols, reels, scatterRules }),
+    );
+    expect(result.symbols[1]!.scatter).toBe(true);
+    expect(result.scatterRules).toHaveLength(1);
+  });
+
+  it("rejects non-boolean scatter property", () => {
+    const symbols = [{ id: "cherry", name: "Cherry", scatter: "yes" }];
+    expect(() => validateGameConfig(configWith({ symbols }))).toThrow("scatter must be a boolean");
+  });
+
+  it("rejects symbol that is both wild and scatter", () => {
+    const symbols = [{ id: "x", name: "X", wild: true, scatter: true }];
+    expect(() => validateGameConfig(configWith({ symbols }))).toThrow(
+      "both wild and scatter",
+    );
+  });
+
+  it("rejects payline payout referencing a scatter symbol", () => {
+    const symbols = [
+      { id: "cherry", name: "Cherry" },
+      { id: "scatter", name: "Scatter", scatter: true },
+    ];
+    const reels = [["cherry", "scatter"], ["cherry", "scatter"], ["cherry", "scatter"]];
+    const payouts = [{ symbolId: "scatter", count: 3, multiplier: 10 }];
+    expect(() => validateGameConfig(configWith({ symbols, reels, payouts }))).toThrow(
+      "scatter symbol",
+    );
+  });
+
+  it("rejects scatterRule referencing a non-scatter symbol", () => {
+    const symbols = [
+      { id: "cherry", name: "Cherry" },
+      { id: "scatter", name: "Scatter", scatter: true },
+    ];
+    const reels = [["cherry", "scatter"], ["cherry", "scatter"], ["cherry", "scatter"]];
+    const scatterRules = [{ symbolId: "cherry", count: 3, multiplier: 5, freeSpins: 0 }];
+    expect(() => validateGameConfig(configWith({ symbols, reels, scatterRules }))).toThrow(
+      "non-scatter symbol",
+    );
+  });
+
+  it("accepts config without scatterRules (backward compat)", () => {
+    const result = validateGameConfig(VALID_CONFIG);
+    expect(result.scatterRules).toBeUndefined();
+  });
+
   it("collects multiple errors at once", () => {
     try {
       validateGameConfig({

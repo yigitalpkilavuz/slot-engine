@@ -21,6 +21,7 @@ const SYMBOL_COLORS: ReadonlyMap<string, number> = new Map([
   ["diamond", 0x06b6d4],
   ["star", 0xf59e0b],
   ["wild", 0xd4a846],
+  ["scatter", 0xe85d5d],
 ]);
 
 const SYMBOL_LABELS: ReadonlyMap<string, string> = new Map([
@@ -40,11 +41,13 @@ const SYMBOL_LABELS: ReadonlyMap<string, string> = new Map([
   ["diamond", "\u2666"],
   ["star", "\u2605"],
   ["wild", "WILD"],
+  ["scatter", "SCAT"],
 ]);
 
 const DEFAULT_COLOR = 0x64748b;
 const CELL_BORDER_COLOR = 0x1e293b;
 const WILD_BORDER_COLOR = 0xf0c850;
+const SCATTER_BORDER_COLOR = 0xf87171;
 
 const LABEL_STYLE = new TextStyle({
   fontFamily: ["DM Sans", "Helvetica Neue", "sans-serif"],
@@ -66,6 +69,19 @@ const WILD_LABEL_STYLE = new TextStyle({
   },
 });
 
+const SCATTER_LABEL_STYLE = new TextStyle({
+  fontFamily: ["DM Sans", "Helvetica Neue", "sans-serif"],
+  fontSize: 17,
+  fontWeight: "bold",
+  fill: 0xffffff,
+  dropShadow: {
+    color: 0xe85d5d,
+    blur: 6,
+    alpha: 0.5,
+    distance: 0,
+  },
+});
+
 export function createSymbolCell(symbolId: string): Container {
   const cell = new Container();
 
@@ -73,10 +89,9 @@ export function createSymbolCell(symbolId: string): Container {
   drawCellBackground(bg, symbolId);
   cell.addChild(bg);
 
-  const isWild = symbolId === "wild";
   const label = new Text({
     text: getLabel(symbolId),
-    style: isWild ? WILD_LABEL_STYLE : LABEL_STYLE,
+    style: getLabelStyle(symbolId),
   });
   label.anchor.set(0.5);
   label.x = CELL_WIDTH / 2;
@@ -93,8 +108,7 @@ export function updateSymbolCell(cell: Container, symbolId: string): void {
   bg.clear();
   drawCellBackground(bg, symbolId);
 
-  const isWild = symbolId === "wild";
-  label.style = isWild ? WILD_LABEL_STYLE : LABEL_STYLE;
+  label.style = getLabelStyle(symbolId);
   label.text = getLabel(symbolId);
 }
 
@@ -104,15 +118,30 @@ export function getSymbolColor(symbolId: string): number {
 
 function drawCellBackground(bg: Graphics, symbolId: string): void {
   const color = getSymbolColor(symbolId);
-  const isWild = symbolId === "wild";
+
+  let borderWidth = 1;
+  let borderColor = CELL_BORDER_COLOR;
+  let borderAlpha = 0.5;
+
+  if (symbolId === "wild") {
+    borderWidth = 2;
+    borderColor = WILD_BORDER_COLOR;
+    borderAlpha = 0.9;
+  } else if (symbolId === "scatter") {
+    borderWidth = 2;
+    borderColor = SCATTER_BORDER_COLOR;
+    borderAlpha = 0.9;
+  }
 
   bg.roundRect(0, 0, CELL_WIDTH, CELL_HEIGHT, CELL_CORNER_RADIUS);
   bg.fill({ color });
-  bg.stroke({
-    width: isWild ? 2 : 1,
-    color: isWild ? WILD_BORDER_COLOR : CELL_BORDER_COLOR,
-    alpha: isWild ? 0.9 : 0.5,
-  });
+  bg.stroke({ width: borderWidth, color: borderColor, alpha: borderAlpha });
+}
+
+function getLabelStyle(symbolId: string): TextStyle {
+  if (symbolId === "wild") return WILD_LABEL_STYLE;
+  if (symbolId === "scatter") return SCATTER_LABEL_STYLE;
+  return LABEL_STYLE;
 }
 
 function getLabel(symbolId: string): string {

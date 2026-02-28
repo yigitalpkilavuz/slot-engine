@@ -10,7 +10,8 @@
     { "id": "bell", "name": "Bell" },
     { "id": "bar", "name": "Bar" },
     { "id": "seven", "name": "Seven" },
-    { "id": "wild", "name": "Wild", "wild": true }
+    { "id": "wild", "name": "Wild", "wild": true },
+    { "id": "scatter", "name": "Scatter", "scatter": true }
   ],
   "reels": [
     [
@@ -24,6 +25,7 @@
       "lemon",
       "orange",
       "plum",
+      "scatter",
       "cherry",
       "lemon",
       "orange",
@@ -32,7 +34,6 @@
       "cherry",
       "lemon",
       "orange",
-      "plum",
       "seven"
     ],
     [
@@ -44,6 +45,7 @@
       "cherry",
       "lemon",
       "orange",
+      "scatter",
       "plum",
       "cherry",
       "lemon",
@@ -53,7 +55,6 @@
       "cherry",
       "lemon",
       "orange",
-      "plum",
       "seven",
       "cherry"
     ],
@@ -67,6 +68,7 @@
       "orange",
       "plum",
       "cherry",
+      "scatter",
       "lemon",
       "orange",
       "plum",
@@ -74,7 +76,6 @@
       "cherry",
       "lemon",
       "orange",
-      "plum",
       "seven",
       "cherry",
       "lemon"
@@ -85,6 +86,7 @@
       "bar",
       "cherry",
       "lemon",
+      "scatter",
       "orange",
       "plum",
       "cherry",
@@ -95,7 +97,6 @@
       "cherry",
       "lemon",
       "orange",
-      "plum",
       "seven",
       "cherry",
       "lemon",
@@ -109,6 +110,7 @@
       "orange",
       "plum",
       "cherry",
+      "scatter",
       "lemon",
       "orange",
       "plum",
@@ -116,7 +118,6 @@
       "cherry",
       "lemon",
       "orange",
-      "plum",
       "seven",
       "cherry",
       "lemon",
@@ -153,6 +154,11 @@
     { "symbolId": "seven", "count": 3, "multiplier": 50 },
     { "symbolId": "seven", "count": 4, "multiplier": 150 },
     { "symbolId": "seven", "count": 5, "multiplier": 500 }
+  ],
+  "scatterRules": [
+    { "symbolId": "scatter", "count": 3, "multiplier": 5, "freeSpins": 10 },
+    { "symbolId": "scatter", "count": 4, "multiplier": 20, "freeSpins": 15 },
+    { "symbolId": "scatter", "count": 5, "multiplier": 100, "freeSpins": 20 }
   ],
   "betOptions": [10, 25, 50, 100, 250, 500],
   "defaultBet": 25

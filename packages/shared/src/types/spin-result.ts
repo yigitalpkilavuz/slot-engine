@@ -9,4 +9,5 @@ export interface SpinResult {
   readonly grid: readonly (readonly string[])[];
   readonly wins: readonly Win[];
   readonly totalPayout: number;
+  readonly freeSpinsAwarded: number;
 }

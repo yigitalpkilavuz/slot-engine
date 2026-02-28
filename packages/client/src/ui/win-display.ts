@@ -46,6 +46,8 @@ export function showWin(
   wins: readonly Win[],
   paylines: readonly Payline[],
   gridOrigin: { readonly x: number; readonly y: number },
+  grid: readonly (readonly string[])[],
+  scatterIds: ReadonlySet<string>,
 ): void {
   const text = display.children[0] as Text;
   text.text = `WIN: ${formatCents(totalPayoutCents)}`;
@@ -55,24 +57,48 @@ export function showWin(
 
   for (let i = 0; i < wins.length; i++) {
     const win = wins[i]!;
-    const payline = paylines[win.paylineIndex];
-    if (!payline) continue;
-
     const color = HIGHLIGHT_COLORS[i % HIGHLIGHT_COLORS.length]!;
 
-    for (let reelIndex = 0; reelIndex < win.count; reelIndex++) {
-      const rowIndex = payline[reelIndex];
-      if (rowIndex === undefined) continue;
+    if (win.paylineIndex === -1) {
+      // Scatter win — highlight all scatter positions on the grid
+      for (let row = 0; row < grid.length; row++) {
+        const rowData = grid[row]!;
+        for (let col = 0; col < rowData.length; col++) {
+          if (scatterIds.has(rowData[col]!)) {
+            drawHighlight(highlights, gridOrigin, display, col, row, color);
+          }
+        }
+      }
+    } else {
+      // Payline win
+      const payline = paylines[win.paylineIndex];
+      if (!payline) continue;
 
-      const cellX = gridOrigin.x + GRID_PADDING + reelIndex * (CELL_WIDTH + REEL_GAP) - display.x;
-      const cellY = gridOrigin.y + GRID_PADDING + rowIndex * (CELL_HEIGHT + CELL_GAP) - display.y;
+      for (let reelIndex = 0; reelIndex < win.count; reelIndex++) {
+        const rowIndex = payline[reelIndex];
+        if (rowIndex === undefined) continue;
 
-      const highlight = new Graphics();
-      highlight.roundRect(cellX - 2, cellY - 2, CELL_WIDTH + 4, CELL_HEIGHT + 4, 12);
-      highlight.stroke({ width: 3, color, alpha: 0.9 });
-      highlights.addChild(highlight);
+        drawHighlight(highlights, gridOrigin, display, reelIndex, rowIndex, color);
+      }
     }
   }
+}
+
+function drawHighlight(
+  container: Container,
+  gridOrigin: { readonly x: number; readonly y: number },
+  display: Container,
+  col: number,
+  row: number,
+  color: number,
+): void {
+  const cellX = gridOrigin.x + GRID_PADDING + col * (CELL_WIDTH + REEL_GAP) - display.x;
+  const cellY = gridOrigin.y + GRID_PADDING + row * (CELL_HEIGHT + CELL_GAP) - display.y;
+
+  const highlight = new Graphics();
+  highlight.roundRect(cellX - 2, cellY - 2, CELL_WIDTH + 4, CELL_HEIGHT + 4, 12);
+  highlight.stroke({ width: 3, color, alpha: 0.9 });
+  container.addChild(highlight);
 }
 
 export function clearWin(display: Container): void {
