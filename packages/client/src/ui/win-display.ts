@@ -2,27 +2,23 @@ import { Container, Graphics, Text, TextStyle } from "pixi.js";
 import type { Win, Payline } from "@slot-engine/shared";
 import { formatCents } from "./balance-display.js";
 import { CELL_WIDTH, CELL_HEIGHT } from "./symbol-cell.js";
-
-const CELL_GAP = 8;
-const REEL_GAP = 12;
-const GRID_PADDING = 20;
+import { CELL_GAP } from "./reel-column.js";
+import { REEL_GAP, GRID_PADDING } from "./reel-grid.js";
+import { FONT_DISPLAY, GOLD_BRIGHT, GOLD, HIGHLIGHT_COLORS } from "./design-tokens.js";
 
 const WIN_TEXT_STYLE = new TextStyle({
-  fontFamily: ["DM Sans", "Helvetica Neue", "sans-serif"],
-  fontSize: 30,
+  fontFamily: [...FONT_DISPLAY],
+  fontSize: 32,
   fontWeight: "bold",
-  fill: 0xf0c850,
+  fill: GOLD_BRIGHT,
+  letterSpacing: 2,
   dropShadow: {
-    color: 0xd4a846,
-    blur: 12,
-    alpha: 0.5,
+    color: GOLD,
+    blur: 16,
+    alpha: 0.4,
     distance: 0,
   },
 });
-
-const HIGHLIGHT_COLORS: readonly number[] = [
-  0xf0c850, 0x2dd4a8, 0xe85d5d, 0x3b82f6, 0xea580c,
-];
 
 export function createWinDisplay(canvasWidth: number): Container {
   const container = new Container();
@@ -33,7 +29,6 @@ export function createWinDisplay(canvasWidth: number): Container {
   text.y = 0;
   container.addChild(text);
 
-  // Highlights container for payline overlays
   const highlights = new Container();
   container.addChild(highlights);
 
@@ -60,7 +55,6 @@ export function showWin(
     const color = HIGHLIGHT_COLORS[i % HIGHLIGHT_COLORS.length]!;
 
     if (win.paylineIndex === -1) {
-      // Scatter win — highlight all scatter positions on the grid
       for (let row = 0; row < grid.length; row++) {
         const rowData = grid[row]!;
         for (let col = 0; col < rowData.length; col++) {
@@ -70,7 +64,6 @@ export function showWin(
         }
       }
     } else {
-      // Payline win
       const payline = paylines[win.paylineIndex];
       if (!payline) continue;
 
@@ -96,8 +89,19 @@ function drawHighlight(
   const cellY = gridOrigin.y + GRID_PADDING + row * (CELL_HEIGHT + CELL_GAP) - display.y;
 
   const highlight = new Graphics();
-  highlight.roundRect(cellX - 2, cellY - 2, CELL_WIDTH + 4, CELL_HEIGHT + 4, 12);
-  highlight.stroke({ width: 3, color, alpha: 0.9 });
+
+  // Subtle fill tint
+  highlight.roundRect(cellX, cellY, CELL_WIDTH, CELL_HEIGHT, 12);
+  highlight.fill({ color, alpha: 0.06 });
+
+  // Inner border
+  highlight.roundRect(cellX - 1, cellY - 1, CELL_WIDTH + 2, CELL_HEIGHT + 2, 13);
+  highlight.stroke({ width: 2, color, alpha: 0.8 });
+
+  // Outer glow border
+  highlight.roundRect(cellX - 3, cellY - 3, CELL_WIDTH + 6, CELL_HEIGHT + 6, 15);
+  highlight.stroke({ width: 2, color, alpha: 0.2 });
+
   container.addChild(highlight);
 }
 

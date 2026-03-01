@@ -1,5 +1,6 @@
 export {
   createSession,
+  fetchSession,
   fetchGameConfig,
   fetchGameList,
   requestSpin,
@@ -8,6 +9,7 @@ export {
 export type {
   ClientGameConfig,
   SessionResponse,
+  SessionStateResponse,
   GameListResponse,
   SpinRequest,
   SpinResponse,

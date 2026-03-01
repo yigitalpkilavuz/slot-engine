@@ -85,4 +85,85 @@ describe("InMemorySessionStore", () => {
 
     expect(() => store.setFreeSpins("nonexistent", 10, 25)).toThrow("Session not found");
   });
+
+  it("sets and retrieves modifier states", () => {
+    const store = new InMemorySessionStore();
+    const session = store.create(10000);
+    const states = [{ type: "increasingMultiplier" as const, currentMultiplier: 3 }];
+    const updated = store.setModifierStates(session.id, states);
+
+    expect(updated.freeSpinModifierStates).toEqual(states);
+
+    const retrieved = store.get(session.id);
+    expect(retrieved!.freeSpinModifierStates).toEqual(states);
+  });
+
+  it("clears modifier states", () => {
+    const store = new InMemorySessionStore();
+    const session = store.create(10000);
+    store.setModifierStates(session.id, [{ type: "increasingMultiplier" as const, currentMultiplier: 2 }]);
+    const cleared = store.clearModifierStates(session.id);
+
+    expect(cleared.freeSpinModifierStates).toBeUndefined();
+  });
+
+  it("creates session without modifier states by default", () => {
+    const store = new InMemorySessionStore();
+    const session = store.create(10000);
+
+    expect(session.freeSpinModifierStates).toBeUndefined();
+  });
+
+  it("creates session with zero accumulated win", () => {
+    const store = new InMemorySessionStore();
+    const session = store.create(10000);
+
+    expect(session.freeSpinAccumulatedWin).toBe(0);
+  });
+
+  it("accumulates free spin wins", () => {
+    const store = new InMemorySessionStore();
+    const session = store.create(10000);
+    store.addFreeSpinWin(session.id, 100);
+    store.addFreeSpinWin(session.id, 200);
+
+    const retrieved = store.get(session.id)!;
+    expect(retrieved.freeSpinAccumulatedWin).toBe(300);
+    expect(retrieved.balance).toBe(10000); // balance unchanged
+  });
+
+  it("collects accumulated win and resets to zero", () => {
+    const store = new InMemorySessionStore();
+    const session = store.create(10000);
+    store.addFreeSpinWin(session.id, 150);
+    store.addFreeSpinWin(session.id, 250);
+
+    const { session: updated, collected } = store.collectFreeSpinWin(session.id);
+    expect(collected).toBe(400);
+    expect(updated.freeSpinAccumulatedWin).toBe(0);
+  });
+
+  it("creates session without activeGameId by default", () => {
+    const store = new InMemorySessionStore();
+    const session = store.create(10000);
+
+    expect(session.activeGameId).toBeUndefined();
+  });
+
+  it("sets activeGameId", () => {
+    const store = new InMemorySessionStore();
+    const session = store.create(10000);
+    const updated = store.setActiveGameId(session.id, "test-game");
+
+    expect(updated.activeGameId).toBe("test-game");
+  });
+
+  it("clears activeGameId", () => {
+    const store = new InMemorySessionStore();
+    const session = store.create(10000);
+    store.setActiveGameId(session.id, "test-game");
+    const cleared = store.setActiveGameId(session.id, undefined);
+
+    expect(cleared.activeGameId).toBeUndefined();
+  });
 });

@@ -40,3 +40,32 @@ describe("POST /api/session", () => {
     expect(b1.sessionId).not.toBe(b2.sessionId);
   });
 });
+
+describe("GET /api/session/:sessionId", () => {
+  it("returns full session state", async () => {
+    const createResponse = await app.inject({ method: "POST", url: "/api/session" });
+    const created = createResponse.json();
+
+    const response = await app.inject({
+      method: "GET",
+      url: `/api/session/${String(created.sessionId)}`,
+    });
+
+    expect(response.statusCode).toBe(200);
+    const body = response.json();
+    expect(body.sessionId).toBe(created.sessionId);
+    expect(body.balance).toBe(10000);
+    expect(body.freeSpinsRemaining).toBe(0);
+    expect(body.freeSpinAccumulatedWin).toBe(0);
+    expect(body.activeGameId).toBeNull();
+  });
+
+  it("returns 404 for unknown session", async () => {
+    const response = await app.inject({
+      method: "GET",
+      url: "/api/session/nonexistent",
+    });
+
+    expect(response.statusCode).toBe(404);
+  });
+});

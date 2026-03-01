@@ -3,4 +3,6 @@ export interface SymbolDefinition {
   readonly name: string;
   readonly wild?: boolean;
   readonly scatter?: boolean;
+  readonly wildMultiplier?: number;
+  readonly expandingWild?: boolean;
 }

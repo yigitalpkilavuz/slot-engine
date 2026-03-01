@@ -17,10 +17,11 @@ export function registerSpinRoute(
       throw new ApiError(400, "Request body must be a JSON object");
     }
 
-    const { sessionId, gameId, bet } = body as {
+    const { sessionId, gameId, bet, bonusBuy } = body as {
       sessionId: unknown;
       gameId: unknown;
       bet: unknown;
+      bonusBuy: unknown;
     };
 
     if (typeof sessionId !== "string" || typeof gameId !== "string" || typeof bet !== "number") {
@@ -29,6 +30,8 @@ export function registerSpinRoute(
         "Request body must include sessionId (string), gameId (string), bet (number)",
       );
     }
+
+    const isBonusBuy = bonusBuy === true;
 
     const session = sessionStore.get(sessionId);
     if (!session) {
@@ -43,6 +46,14 @@ export function registerSpinRoute(
     const isFreeSpinMode = session.freeSpinsRemaining > 0;
     let effectiveBet: number;
 
+    if (isBonusBuy && isFreeSpinMode) {
+      throw new ApiError(400, "Bonus buy is not allowed during free spins");
+    }
+
+    if (isBonusBuy && !config.bonusBuyCostMultiplier) {
+      throw new ApiError(400, "This game does not support bonus buy");
+    }
+
     if (isFreeSpinMode) {
       effectiveBet = session.freeSpinBet;
     } else {
@@ -54,40 +65,84 @@ export function registerSpinRoute(
         throw new ApiError(400, `Invalid bet. Options: ${config.betOptions.join(", ")}`);
       }
 
-      if (session.balance < bet) {
+      const cost = isBonusBuy ? bet * config.bonusBuyCostMultiplier! : bet;
+
+      if (session.balance < cost) {
         throw new ApiError(
           400,
-          `Insufficient balance: ${String(session.balance)}, bet: ${String(bet)}`,
+          `Insufficient balance: ${String(session.balance)}, cost: ${String(cost)}`,
         );
       }
 
       effectiveBet = bet;
-      sessionStore.updateBalance(sessionId, -bet);
+      sessionStore.updateBalance(sessionId, -cost);
     }
 
-    const result = spin(config, effectiveBet, rng);
+    const previousModifierStates = isFreeSpinMode
+      ? session.freeSpinModifierStates
+      : undefined;
 
-    const updated = sessionStore.updateBalance(sessionId, result.totalPayout);
+    const result = spin(config, effectiveBet, rng, isBonusBuy, isFreeSpinMode, previousModifierStates);
 
+    // During free spins: accumulate payouts, pay out at once when bonus ends
+    let balanceAfter: number;
     let freeSpinsRemaining: number;
 
     if (isFreeSpinMode) {
+      // Accumulate payout — don't add to balance yet
+      if (result.totalPayout > 0) {
+        sessionStore.addFreeSpinWin(sessionId, result.totalPayout);
+      }
+
       freeSpinsRemaining = session.freeSpinsRemaining - 1 + result.freeSpinsAwarded;
       sessionStore.setFreeSpins(
         sessionId,
         freeSpinsRemaining,
         freeSpinsRemaining > 0 ? session.freeSpinBet : 0,
       );
-    } else if (result.freeSpinsAwarded > 0) {
-      freeSpinsRemaining = result.freeSpinsAwarded;
-      sessionStore.setFreeSpins(sessionId, freeSpinsRemaining, effectiveBet);
+
+      if (freeSpinsRemaining > 0 && result.freeSpinModifierStates) {
+        sessionStore.setModifierStates(sessionId, result.freeSpinModifierStates);
+      } else if (freeSpinsRemaining <= 0) {
+        sessionStore.clearModifierStates(sessionId);
+      }
+
+      if (freeSpinsRemaining <= 0) {
+        // Bonus over — pay out all accumulated winnings at once
+        sessionStore.setActiveGameId(sessionId, undefined);
+        const { session: paid, collected } = sessionStore.collectFreeSpinWin(sessionId);
+        if (collected > 0) {
+          const finalSession = sessionStore.updateBalance(sessionId, collected);
+          balanceAfter = finalSession.balance;
+        } else {
+          balanceAfter = paid.balance;
+        }
+      } else {
+        // Still in bonus — balance unchanged
+        balanceAfter = session.balance;
+      }
     } else {
-      freeSpinsRemaining = 0;
+      // Normal spin — pay out immediately
+      const updated = sessionStore.updateBalance(sessionId, result.totalPayout);
+      balanceAfter = updated.balance;
+
+      if (result.freeSpinsAwarded > 0) {
+        freeSpinsRemaining = result.freeSpinsAwarded;
+        sessionStore.setFreeSpins(sessionId, freeSpinsRemaining, effectiveBet);
+        sessionStore.setActiveGameId(sessionId, gameId);
+
+        // Initialize empty modifier states for the upcoming free spin round
+        if (config.freeSpinModifiers && config.freeSpinModifiers.length > 0) {
+          sessionStore.setModifierStates(sessionId, []);
+        }
+      } else {
+        freeSpinsRemaining = 0;
+      }
     }
 
     return reply.send({
       result,
-      balance: updated.balance,
+      balance: balanceAfter,
       freeSpinsRemaining,
     });
   });

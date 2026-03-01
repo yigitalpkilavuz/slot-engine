@@ -1,10 +1,14 @@
 import { randomUUID } from "node:crypto";
+import type { FreeSpinModifierState } from "@slot-engine/shared";
 
 export interface Session {
   readonly id: string;
   readonly balance: number;
   readonly freeSpinsRemaining: number;
   readonly freeSpinBet: number;
+  readonly freeSpinAccumulatedWin: number;
+  readonly freeSpinModifierStates?: readonly FreeSpinModifierState[];
+  readonly activeGameId?: string;
 }
 
 export interface SessionStore {
@@ -12,6 +16,11 @@ export interface SessionStore {
   get(id: string): Session | undefined;
   updateBalance(id: string, delta: number): Session;
   setFreeSpins(id: string, remaining: number, bet: number): Session;
+  addFreeSpinWin(id: string, amount: number): Session;
+  collectFreeSpinWin(id: string): { session: Session; collected: number };
+  setActiveGameId(id: string, gameId: string | undefined): Session;
+  setModifierStates(id: string, states: readonly FreeSpinModifierState[]): Session;
+  clearModifierStates(id: string): Session;
 }
 
 export class InMemorySessionStore implements SessionStore {
@@ -23,6 +32,7 @@ export class InMemorySessionStore implements SessionStore {
       balance: initialBalance,
       freeSpinsRemaining: 0,
       freeSpinBet: 0,
+      freeSpinAccumulatedWin: 0,
     };
     this.sessions.set(session.id, session);
     return session;
@@ -61,6 +71,76 @@ export class InMemorySessionStore implements SessionStore {
       freeSpinsRemaining: remaining,
       freeSpinBet: bet,
     };
+    this.sessions.set(id, updated);
+    return updated;
+  }
+
+  addFreeSpinWin(id: string, amount: number): Session {
+    const session = this.sessions.get(id);
+    if (!session) {
+      throw new Error(`Session not found: ${id}`);
+    }
+
+    const updated: Session = {
+      ...session,
+      freeSpinAccumulatedWin: session.freeSpinAccumulatedWin + amount,
+    };
+    this.sessions.set(id, updated);
+    return updated;
+  }
+
+  collectFreeSpinWin(id: string): { session: Session; collected: number } {
+    const session = this.sessions.get(id);
+    if (!session) {
+      throw new Error(`Session not found: ${id}`);
+    }
+
+    const collected = session.freeSpinAccumulatedWin;
+    const updated: Session = {
+      ...session,
+      freeSpinAccumulatedWin: 0,
+    };
+    this.sessions.set(id, updated);
+    return { session: updated, collected };
+  }
+
+  setActiveGameId(id: string, gameId: string | undefined): Session {
+    const session = this.sessions.get(id);
+    if (!session) {
+      throw new Error(`Session not found: ${id}`);
+    }
+
+    if (gameId !== undefined) {
+      const updated: Session = { ...session, activeGameId: gameId };
+      this.sessions.set(id, updated);
+      return updated;
+    }
+
+    const { activeGameId: _, ...rest } = session;
+    const updated = rest as Session;
+    this.sessions.set(id, updated);
+    return updated;
+  }
+
+  setModifierStates(id: string, states: readonly FreeSpinModifierState[]): Session {
+    const session = this.sessions.get(id);
+    if (!session) {
+      throw new Error(`Session not found: ${id}`);
+    }
+
+    const updated: Session = { ...session, freeSpinModifierStates: states };
+    this.sessions.set(id, updated);
+    return updated;
+  }
+
+  clearModifierStates(id: string): Session {
+    const session = this.sessions.get(id);
+    if (!session) {
+      throw new Error(`Session not found: ${id}`);
+    }
+
+    const { freeSpinModifierStates: _, ...rest } = session;
+    const updated = rest as Session;
     this.sessions.set(id, updated);
     return updated;
   }

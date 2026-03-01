@@ -1,4 +1,5 @@
 import { Container, Text, TextStyle } from "pixi.js";
+import { FONT_BODY, SILVER_MUTED, GOLD } from "./design-tokens.js";
 
 export function formatCents(cents: number): string {
   const dollars = Math.floor(cents / 100);
@@ -7,18 +8,18 @@ export function formatCents(cents: number): string {
 }
 
 const LABEL_STYLE = new TextStyle({
-  fontFamily: ["DM Sans", "Helvetica Neue", "sans-serif"],
+  fontFamily: [...FONT_BODY],
   fontSize: 11,
   fontWeight: "500",
-  fill: 0x7c8a9a,
-  letterSpacing: 1,
+  fill: SILVER_MUTED,
+  letterSpacing: 1.5,
 });
 
 const VALUE_STYLE = new TextStyle({
-  fontFamily: ["DM Sans", "Helvetica Neue", "sans-serif"],
-  fontSize: 22,
+  fontFamily: [...FONT_BODY],
+  fontSize: 24,
   fontWeight: "bold",
-  fill: 0xd4a846,
+  fill: GOLD,
 });
 
 export function createBalanceDisplay(): Container {
@@ -28,7 +29,7 @@ export function createBalanceDisplay(): Container {
   container.addChild(label);
 
   const value = new Text({ text: "$0.00", style: VALUE_STYLE });
-  value.y = 16;
+  value.y = 18;
   container.addChild(value);
 
   return container;

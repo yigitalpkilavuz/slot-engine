@@ -1,3 +1,4 @@
+import type { FreeSpinModifier } from "./free-spin-modifier.js";
 import type { Payline } from "./payline.js";
 import type { PayoutRule, ScatterRule } from "./payout.js";
 import type { ReelStrip } from "./reel.js";
@@ -12,6 +13,9 @@ export interface GameConfig {
   readonly paylines: readonly Payline[];
   readonly payouts: readonly PayoutRule[];
   readonly scatterRules?: readonly ScatterRule[];
+  readonly cascading?: boolean;
+  readonly bonusBuyCostMultiplier?: number;
+  readonly freeSpinModifiers?: readonly FreeSpinModifier[];
   readonly betOptions: readonly number[];
   readonly defaultBet: number;
 }

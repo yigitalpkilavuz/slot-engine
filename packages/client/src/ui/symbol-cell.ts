@@ -1,140 +1,178 @@
-import { Container, Graphics, Text, TextStyle } from "pixi.js";
+import { Assets, Container, Graphics, Sprite, Text, Texture, TextStyle } from "pixi.js";
+import { getSymbolTextureAlias } from "../assets/game-asset-registry.js";
+import {
+  FONT_BODY,
+  WHITE_SOFT,
+  GOLD,
+  GOLD_BRIGHT,
+  CORAL,
+  BORDER_SUBTLE,
+  SYMBOL_COLORS,
+  SYMBOL_LABELS,
+  darkenColor,
+  lightenColor,
+} from "./design-tokens.js";
 
-export const CELL_WIDTH = 120;
-export const CELL_HEIGHT = 90;
-const CELL_CORNER_RADIUS = 10;
-
-const SYMBOL_COLORS: ReadonlyMap<string, number> = new Map([
-  ["cherry", 0xdc2626],
-  ["lemon", 0xeab308],
-  ["orange", 0xea580c],
-  ["plum", 0x9333ea],
-  ["bell", 0xf59e0b],
-  ["bar", 0x16a34a],
-  ["seven", 0x2563eb],
-  ["strawberry", 0xbe123c],
-  ["watermelon", 0x059669],
-  ["grape", 0x7c3aed],
-  ["banana", 0xfbbf24],
-  ["pineapple", 0xb45309],
-  ["coconut", 0x78716c],
-  ["diamond", 0x06b6d4],
-  ["star", 0xf59e0b],
-  ["wild", 0xd4a846],
-  ["scatter", 0xe85d5d],
-]);
-
-const SYMBOL_LABELS: ReadonlyMap<string, string> = new Map([
-  ["cherry", "CHERRY"],
-  ["lemon", "LEMON"],
-  ["orange", "ORANGE"],
-  ["plum", "PLUM"],
-  ["bell", "BELL"],
-  ["bar", "BAR"],
-  ["seven", "7"],
-  ["strawberry", "STRW"],
-  ["watermelon", "WTML"],
-  ["grape", "GRAPE"],
-  ["banana", "BANA"],
-  ["pineapple", "PINE"],
-  ["coconut", "COCO"],
-  ["diamond", "\u2666"],
-  ["star", "\u2605"],
-  ["wild", "WILD"],
-  ["scatter", "SCAT"],
-]);
-
+export const CELL_WIDTH = 130;
+export const CELL_HEIGHT = 100;
+const CELL_CORNER_RADIUS = 12;
 const DEFAULT_COLOR = 0x64748b;
-const CELL_BORDER_COLOR = 0x1e293b;
-const WILD_BORDER_COLOR = 0xf0c850;
-const SCATTER_BORDER_COLOR = 0xf87171;
 
 const LABEL_STYLE = new TextStyle({
-  fontFamily: ["DM Sans", "Helvetica Neue", "sans-serif"],
-  fontSize: 17,
+  fontFamily: [...FONT_BODY],
+  fontSize: 15,
   fontWeight: "bold",
-  fill: 0xffffff,
+  fill: WHITE_SOFT,
+  letterSpacing: 1,
 });
 
 const WILD_LABEL_STYLE = new TextStyle({
-  fontFamily: ["DM Sans", "Helvetica Neue", "sans-serif"],
-  fontSize: 17,
+  fontFamily: [...FONT_BODY],
+  fontSize: 15,
   fontWeight: "bold",
-  fill: 0xffffff,
+  fill: WHITE_SOFT,
+  letterSpacing: 1,
   dropShadow: {
-    color: 0xf0c850,
-    blur: 6,
-    alpha: 0.5,
+    color: GOLD_BRIGHT,
+    blur: 8,
+    alpha: 0.6,
     distance: 0,
   },
 });
 
 const SCATTER_LABEL_STYLE = new TextStyle({
-  fontFamily: ["DM Sans", "Helvetica Neue", "sans-serif"],
-  fontSize: 17,
+  fontFamily: [...FONT_BODY],
+  fontSize: 15,
   fontWeight: "bold",
-  fill: 0xffffff,
+  fill: WHITE_SOFT,
+  letterSpacing: 1,
   dropShadow: {
-    color: 0xe85d5d,
-    blur: 6,
-    alpha: 0.5,
+    color: CORAL,
+    blur: 8,
+    alpha: 0.6,
     distance: 0,
   },
 });
 
-export function createSymbolCell(symbolId: string): Container {
+const BADGE_STYLE = new TextStyle({
+  fontFamily: [...FONT_BODY],
+  fontSize: 10,
+  fontWeight: "900",
+  fill: 0x08090f,
+});
+
+export function getSymbolColor(symbolId: string): number {
+  return SYMBOL_COLORS[symbolId] ?? DEFAULT_COLOR;
+}
+
+export function createSymbolCell(symbolId: string, badgeText?: string): Container {
   const cell = new Container();
+  const texture = getSymbolTexture(symbolId);
 
-  const bg = new Graphics();
-  drawCellBackground(bg, symbolId);
-  cell.addChild(bg);
+  if (texture) {
+    const sprite = new Sprite(texture);
+    sprite.width = CELL_WIDTH;
+    sprite.height = CELL_HEIGHT;
+    cell.addChild(sprite);
+    (cell as unknown as { _spriteMode: boolean })._spriteMode = true;
+  } else {
+    const bg = new Graphics();
+    drawCellBackground(bg, symbolId);
+    cell.addChild(bg);
 
-  const label = new Text({
-    text: getLabel(symbolId),
-    style: getLabelStyle(symbolId),
-  });
-  label.anchor.set(0.5);
-  label.x = CELL_WIDTH / 2;
-  label.y = CELL_HEIGHT / 2;
-  cell.addChild(label);
+    const label = new Text({
+      text: getLabel(symbolId),
+      style: getLabelStyle(symbolId),
+    });
+    label.anchor.set(0.5);
+    label.x = CELL_WIDTH / 2;
+    label.y = CELL_HEIGHT / 2;
+    cell.addChild(label);
+  }
+
+  if (badgeText) {
+    addBadge(cell, badgeText);
+  }
 
   return cell;
 }
 
-export function updateSymbolCell(cell: Container, symbolId: string): void {
-  const bg = cell.children[0] as Graphics;
-  const label = cell.children[1] as Text;
+export function updateSymbolCell(cell: Container, symbolId: string, badgeText?: string): void {
+  const isSpriteMode = (cell as unknown as { _spriteMode?: boolean })._spriteMode === true;
 
-  bg.clear();
-  drawCellBackground(bg, symbolId);
+  removeBadge(cell);
 
-  label.style = getLabelStyle(symbolId);
-  label.text = getLabel(symbolId);
+  if (isSpriteMode) {
+    const sprite = cell.children[0] as Sprite;
+    const texture = getSymbolTexture(symbolId);
+    if (texture) {
+      sprite.texture = texture;
+    }
+  } else {
+    const texture = getSymbolTexture(symbolId);
+    if (texture) {
+      cell.removeChildren();
+      const sprite = new Sprite(texture);
+      sprite.width = CELL_WIDTH;
+      sprite.height = CELL_HEIGHT;
+      cell.addChild(sprite);
+      (cell as unknown as { _spriteMode: boolean })._spriteMode = true;
+    } else {
+      const bg = cell.children[0] as Graphics;
+      const label = cell.children[1] as Text;
+
+      bg.clear();
+      drawCellBackground(bg, symbolId);
+
+      label.style = getLabelStyle(symbolId);
+      label.text = getLabel(symbolId);
+    }
+  }
+
+  if (badgeText) {
+    addBadge(cell, badgeText);
+  }
 }
 
-export function getSymbolColor(symbolId: string): number {
-  return SYMBOL_COLORS.get(symbolId) ?? DEFAULT_COLOR;
+function getSymbolTexture(symbolId: string): Texture | undefined {
+  const alias = getSymbolTextureAlias(symbolId);
+  const texture = Assets.get<Texture>(alias);
+  return texture instanceof Texture ? texture : undefined;
 }
 
 function drawCellBackground(bg: Graphics, symbolId: string): void {
   const color = getSymbolColor(symbolId);
+  const darkColor = darkenColor(color, 0.6);
+  const brightColor = lightenColor(color, 1.3);
 
+  // Layer 1: Dark base fill
+  bg.roundRect(0, 0, CELL_WIDTH, CELL_HEIGHT, CELL_CORNER_RADIUS);
+  bg.fill({ color: darkColor });
+
+  // Layer 2: Top highlight gradient (brighter top 40%)
+  bg.roundRect(0, 0, CELL_WIDTH, CELL_HEIGHT * 0.4, CELL_CORNER_RADIUS);
+  bg.fill({ color: brightColor, alpha: 0.2 });
+
+  // Layer 3: Inner glow (inset stroke)
+  bg.roundRect(1, 1, CELL_WIDTH - 2, CELL_HEIGHT - 2, CELL_CORNER_RADIUS - 1);
+  bg.stroke({ width: 1, color, alpha: 0.3 });
+
+  // Layer 4: Outer border
+  let borderColor = BORDER_SUBTLE;
+  let borderAlpha = 0.3;
   let borderWidth = 1;
-  let borderColor = CELL_BORDER_COLOR;
-  let borderAlpha = 0.5;
 
   if (symbolId === "wild") {
-    borderWidth = 2;
-    borderColor = WILD_BORDER_COLOR;
-    borderAlpha = 0.9;
+    borderColor = GOLD;
+    borderAlpha = 0.7;
+    borderWidth = 1.5;
   } else if (symbolId === "scatter") {
-    borderWidth = 2;
-    borderColor = SCATTER_BORDER_COLOR;
-    borderAlpha = 0.9;
+    borderColor = CORAL;
+    borderAlpha = 0.7;
+    borderWidth = 1.5;
   }
 
   bg.roundRect(0, 0, CELL_WIDTH, CELL_HEIGHT, CELL_CORNER_RADIUS);
-  bg.fill({ color });
   bg.stroke({ width: borderWidth, color: borderColor, alpha: borderAlpha });
 }
 
@@ -145,5 +183,42 @@ function getLabelStyle(symbolId: string): TextStyle {
 }
 
 function getLabel(symbolId: string): string {
-  return SYMBOL_LABELS.get(symbolId) ?? symbolId.toUpperCase();
+  return SYMBOL_LABELS[symbolId] ?? symbolId.toUpperCase();
+}
+
+const BADGE_TAG = "_badge";
+
+function addBadge(cell: Container, text: string): void {
+  const badge = new Container();
+  (badge as unknown as { _tag: string })._tag = BADGE_TAG;
+
+  const badgeW = 26;
+  const badgeH = 17;
+
+  const bg = new Graphics();
+  bg.roundRect(0, 0, badgeW, badgeH, 6);
+  bg.fill({ color: GOLD_BRIGHT });
+  bg.stroke({ width: 0.5, color: GOLD, alpha: 0.5 });
+  badge.addChild(bg);
+
+  const label = new Text({ text, style: BADGE_STYLE });
+  label.anchor.set(0.5);
+  label.x = badgeW / 2;
+  label.y = badgeH / 2;
+  badge.addChild(label);
+
+  badge.x = CELL_WIDTH - badgeW - 5;
+  badge.y = CELL_HEIGHT - badgeH - 5;
+  cell.addChild(badge);
+}
+
+function removeBadge(cell: Container): void {
+  for (let i = cell.children.length - 1; i >= 0; i--) {
+    const child = cell.children[i] as Container;
+    if ((child as unknown as { _tag?: string })._tag === BADGE_TAG) {
+      cell.removeChildAt(i);
+      child.destroy({ children: true });
+      return;
+    }
+  }
 }

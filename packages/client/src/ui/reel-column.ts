@@ -2,10 +2,11 @@ import type { Ticker } from "pixi.js";
 import { Container } from "pixi.js";
 import type { SymbolDefinition } from "@slot-engine/shared";
 import { createSymbolCell, updateSymbolCell, CELL_HEIGHT } from "./symbol-cell.js";
+import { easeOutBack } from "./design-tokens.js";
 
-export const CELL_GAP = 8;
+export const CELL_GAP = 10;
 const CYCLE_EVERY_N_FRAMES = 4;
-const LANDING_DURATION_MS = 250;
+const LANDING_DURATION_MS = 350;
 const LANDING_OFFSET = -(CELL_HEIGHT + CELL_GAP);
 
 export function createReelColumn(rowCount: number): Container {
@@ -23,11 +24,16 @@ export function createReelColumn(rowCount: number): Container {
   return reel;
 }
 
-export function setReelSymbols(reel: Container, symbols: readonly string[]): void {
+export function setReelSymbols(
+  reel: Container,
+  symbols: readonly string[],
+  badgeMap?: ReadonlyMap<string, string>,
+): void {
   const strip = reel.children[0] as Container;
   for (let i = 0; i < symbols.length; i++) {
     const cell = strip.children[i] as Container;
-    updateSymbolCell(cell, symbols[i]!);
+    const symbolId = symbols[i]!;
+    updateSymbolCell(cell, symbolId, badgeMap?.get(symbolId));
   }
 }
 
@@ -49,7 +55,6 @@ export function startReelSpin(
     }
   };
 
-  // Store callback reference on the reel for removal later
   (reel as unknown as { _spinCallback: () => void })._spinCallback = callback;
   ticker.add(callback);
 }
@@ -58,22 +63,21 @@ export function stopReelSpin(
   reel: Container,
   finalSymbols: readonly string[],
   ticker: Ticker,
+  badgeMap?: ReadonlyMap<string, string>,
 ): Promise<void> {
-  // Remove spin cycling callback
   const stored = reel as unknown as { _spinCallback?: () => void };
   if (stored._spinCallback) {
     ticker.remove(stored._spinCallback);
     delete stored._spinCallback;
   }
 
-  // Set final symbols
   const strip = reel.children[0] as Container;
   for (let i = 0; i < finalSymbols.length; i++) {
     const cell = strip.children[i] as Container;
-    updateSymbolCell(cell, finalSymbols[i]!);
+    const symbolId = finalSymbols[i]!;
+    updateSymbolCell(cell, symbolId, badgeMap?.get(symbolId));
   }
 
-  // Landing animation: offset up, tween down with easeOutBack
   strip.y = LANDING_OFFSET;
 
   return new Promise((resolve) => {
@@ -93,10 +97,4 @@ export function stopReelSpin(
 
     ticker.add(animCallback);
   });
-}
-
-function easeOutBack(t: number): number {
-  const c1 = 1.70158;
-  const c3 = c1 + 1;
-  return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2);
 }

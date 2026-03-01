@@ -1,10 +1,20 @@
-import type { GameConfig, SpinResult } from "@slot-engine/shared";
+import type { FreeSpinModifierState, GameConfig, SpinResult } from "@slot-engine/shared";
 
 export type ClientGameConfig = Omit<GameConfig, "reels">;
 
 export interface SessionResponse {
   readonly sessionId: string;
   readonly balance: number;
+}
+
+export interface SessionStateResponse {
+  readonly sessionId: string;
+  readonly balance: number;
+  readonly freeSpinsRemaining: number;
+  readonly freeSpinBet: number;
+  readonly freeSpinAccumulatedWin: number;
+  readonly freeSpinModifierStates: readonly FreeSpinModifierState[] | null;
+  readonly activeGameId: string | null;
 }
 
 export interface GameListResponse {
@@ -15,6 +25,7 @@ export interface SpinRequest {
   readonly sessionId: string;
   readonly gameId: string;
   readonly bet: number;
+  readonly bonusBuy?: boolean;
 }
 
 export interface SpinResponse {
@@ -59,6 +70,12 @@ async function fetchJson<T>(url: string, options?: RequestInit): Promise<T> {
 
 export function createSession(): Promise<SessionResponse> {
   return fetchJson<SessionResponse>("/api/session", { method: "POST" });
+}
+
+export function fetchSession(sessionId: string): Promise<SessionStateResponse> {
+  return fetchJson<SessionStateResponse>(
+    `/api/session/${encodeURIComponent(sessionId)}`,
+  );
 }
 
 export function fetchGameConfig(gameId: string): Promise<ClientGameConfig> {

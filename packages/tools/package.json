@@ -1,0 +1,25 @@
+{
+  "name": "@slot-engine/tools",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "bin": {
+    "simulate-rtp": "./dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "simulate": "node dist/cli.js"
+  },
+  "dependencies": {
+    "@slot-engine/shared": "workspace:*",
+    "@slot-engine/server": "workspace:*"
+  }
+}

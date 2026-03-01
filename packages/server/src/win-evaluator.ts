@@ -1,4 +1,4 @@
-import type { Payline, PayoutRule, Win } from "@slot-engine/shared";
+import type { Payline, PayoutRule, SymbolDefinition, Win } from "@slot-engine/shared";
 
 export function evaluateWins(
   grid: readonly (readonly string[])[],
@@ -6,7 +6,9 @@ export function evaluateWins(
   payouts: readonly PayoutRule[],
   bet: number,
   wildIds: ReadonlySet<string>,
+  symbols: readonly SymbolDefinition[] = [],
 ): readonly Win[] {
+  const wildMultiplierMap = buildWildMultiplierMap(symbols);
   const wins: Win[] = [];
 
   for (let paylineIndex = 0; paylineIndex < paylines.length; paylineIndex++) {
@@ -15,6 +17,7 @@ export function evaluateWins(
     // Find base symbol (first non-wild) and count consecutive matches
     let baseSymbol: string | null = null;
     let count = 0;
+    let wildMultiplierProduct = 1;
 
     for (let reelIndex = 0; reelIndex < payline.length; reelIndex++) {
       const rowIndex = payline[reelIndex]!;
@@ -22,6 +25,7 @@ export function evaluateWins(
 
       if (wildIds.has(symbol)) {
         count++;
+        wildMultiplierProduct *= wildMultiplierMap.get(symbol) ?? 1;
       } else if (baseSymbol === null) {
         baseSymbol = symbol;
         count++;
@@ -41,12 +45,24 @@ export function evaluateWins(
         paylineIndex,
         symbolId: baseSymbol,
         count: matchingPayout.count,
-        payout: bet * matchingPayout.multiplier,
+        payout: Math.floor(bet * matchingPayout.multiplier * wildMultiplierProduct),
       });
     }
   }
 
   return wins;
+}
+
+function buildWildMultiplierMap(
+  symbols: readonly SymbolDefinition[],
+): ReadonlyMap<string, number> {
+  const map = new Map<string, number>();
+  for (const sym of symbols) {
+    if (sym.wild === true && sym.wildMultiplier !== undefined) {
+      map.set(sym.id, sym.wildMultiplier);
+    }
+  }
+  return map;
 }
 
 function findBestPayout(

@@ -52,10 +52,10 @@ Wild symbol type that substitutes for any other symbol during win evaluation. Co
 
 Scatter symbols that pay anywhere (not on paylines). Landing N+ scatters triggers a free spins bonus round with a fixed number of spins at the triggering bet. Requires new UI state for free spin mode.
 
-- [ ] Status: Not started
+- [x] Status: Complete
 
 ## Phase 9 — Bonus Features
 
 Multiplier wilds, expanding wilds, stacked symbols, cascading wins — each as its own sub-phase.
 
-- [ ] Status: Not started
+- [x] Status: Complete

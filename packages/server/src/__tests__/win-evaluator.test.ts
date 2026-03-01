@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import type { Payline, PayoutRule } from "@slot-engine/shared";
+import type { Payline, PayoutRule, SymbolDefinition } from "@slot-engine/shared";
 import { evaluateWins } from "../win-evaluator.js";
 
 const PAYLINES: readonly Payline[] = [
@@ -197,5 +197,103 @@ describe("evaluateWins with wilds", () => {
     expect(wins).toHaveLength(1);
     expect(wins[0]!.symbolId).toBe("seven");
     expect(wins[0]!.count).toBe(3);
+  });
+});
+
+const MULTIPLIER_SYMBOLS: readonly SymbolDefinition[] = [
+  { id: "cherry", name: "Cherry" },
+  { id: "bar", name: "Bar" },
+  { id: "seven", name: "Seven" },
+  { id: "wild", name: "Wild", wild: true, wildMultiplier: 2 },
+];
+
+const MULTI_WILD_SYMBOLS: readonly SymbolDefinition[] = [
+  { id: "cherry", name: "Cherry" },
+  { id: "seven", name: "Seven" },
+  { id: "wild", name: "Wild", wild: true, wildMultiplier: 3 },
+];
+
+describe("evaluateWins with multiplier wilds", () => {
+  it("single 2x wild doubles the payout", () => {
+    const grid = [
+      ["cherry", "wild", "cherry"],
+      ["bar", "bar", "bar"],
+      ["seven", "seven", "seven"],
+    ];
+
+    const wins = evaluateWins(grid, [[0, 0, 0]], PAYOUTS, 100, WILD_IDS, MULTIPLIER_SYMBOLS);
+    expect(wins).toHaveLength(1);
+    expect(wins[0]!.symbolId).toBe("cherry");
+    expect(wins[0]!.count).toBe(3);
+    // bet(100) * multiplier(10) * wildMultiplier(2) = 2000
+    expect(wins[0]!.payout).toBe(2000);
+  });
+
+  it("two 3x wilds multiply together (3 * 3 = 9x)", () => {
+    const grid = [
+      ["cherry", "wild", "wild"],
+      ["bar", "bar", "bar"],
+      ["seven", "seven", "seven"],
+    ];
+
+    const wins = evaluateWins(grid, [[0, 0, 0]], PAYOUTS, 100, WILD_IDS, MULTI_WILD_SYMBOLS);
+    expect(wins).toHaveLength(1);
+    expect(wins[0]!.symbolId).toBe("cherry");
+    expect(wins[0]!.count).toBe(3);
+    // bet(100) * multiplier(10) * wildMultiplier(3*3=9) = 9000
+    expect(wins[0]!.payout).toBe(9000);
+  });
+
+  it("wild without wildMultiplier field is treated as 1x", () => {
+    const symbolsNoMultiplier: readonly SymbolDefinition[] = [
+      { id: "cherry", name: "Cherry" },
+      { id: "wild", name: "Wild", wild: true },
+    ];
+
+    const grid = [
+      ["cherry", "wild", "cherry"],
+      ["bar", "bar", "bar"],
+      ["seven", "seven", "seven"],
+    ];
+
+    const wins = evaluateWins(grid, [[0, 0, 0]], PAYOUTS, 100, WILD_IDS, symbolsNoMultiplier);
+    expect(wins).toHaveLength(1);
+    // bet(100) * multiplier(10) * wildMultiplier(1) = 1000 (unchanged)
+    expect(wins[0]!.payout).toBe(1000);
+  });
+
+  it("backward compat: no symbols param defaults to 1x multiplier", () => {
+    const grid = [
+      ["cherry", "wild", "cherry"],
+      ["bar", "bar", "bar"],
+      ["seven", "seven", "seven"],
+    ];
+
+    // Calling without symbols argument (existing test pattern)
+    const wins = evaluateWins(grid, [[0, 0, 0]], PAYOUTS, 100, WILD_IDS);
+    expect(wins).toHaveLength(1);
+    expect(wins[0]!.payout).toBe(1000);
+  });
+
+  it("multiplier wild uses Math.floor to truncate fractional payouts", () => {
+    // Two 1.5x wilds: bet(7) * multiplier(10) * (1.5*1.5=2.25) = 157.5 → 157
+    const symbols: readonly SymbolDefinition[] = [
+      { id: "seven", name: "Seven" },
+      { id: "wild", name: "Wild", wild: true, wildMultiplier: 1.5 },
+    ];
+
+    const grid = [
+      ["wild", "wild", "seven"],
+      ["bar", "bar", "bar"],
+      ["seven", "seven", "seven"],
+    ];
+
+    const payouts: readonly import("@slot-engine/shared").PayoutRule[] = [
+      { symbolId: "seven", count: 3, multiplier: 10 },
+    ];
+
+    const wins = evaluateWins(grid, [[0, 0, 0]], payouts, 7, WILD_IDS, symbols);
+    expect(wins).toHaveLength(1);
+    expect(wins[0]!.payout).toBe(157);
   });
 });

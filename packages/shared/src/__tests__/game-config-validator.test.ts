@@ -196,6 +196,213 @@ describe("validateGameConfig", () => {
     expect(result.scatterRules).toBeUndefined();
   });
 
+  it("rejects NaN wildMultiplier", () => {
+    const symbols = [
+      { id: "cherry", name: "Cherry" },
+      { id: "wild", name: "Wild", wild: true, wildMultiplier: NaN },
+    ];
+    const reels = [["cherry", "wild"], ["cherry", "wild"], ["cherry", "wild"]];
+    expect(() => validateGameConfig(configWith({ symbols, reels }))).toThrow(
+      "finite positive number",
+    );
+  });
+
+  it("rejects Infinity wildMultiplier", () => {
+    const symbols = [
+      { id: "cherry", name: "Cherry" },
+      { id: "wild", name: "Wild", wild: true, wildMultiplier: Infinity },
+    ];
+    const reels = [["cherry", "wild"], ["cherry", "wild"], ["cherry", "wild"]];
+    expect(() => validateGameConfig(configWith({ symbols, reels }))).toThrow(
+      "finite positive number",
+    );
+  });
+
+  it("accepts valid wildMultiplier on wild symbol", () => {
+    const symbols = [
+      { id: "cherry", name: "Cherry" },
+      { id: "wild", name: "Wild", wild: true, wildMultiplier: 2 },
+    ];
+    const reels = [["cherry", "wild"], ["cherry", "wild"], ["cherry", "wild"]];
+    const result = validateGameConfig(configWith({ symbols, reels }));
+    expect(result.symbols[1]!.wildMultiplier).toBe(2);
+  });
+
+  it("rejects wildMultiplier on non-wild symbol", () => {
+    const symbols = [
+      { id: "cherry", name: "Cherry", wildMultiplier: 2 },
+      { id: "bar", name: "Bar" },
+    ];
+    expect(() => validateGameConfig(configWith({ symbols }))).toThrow(
+      "only allowed on wild symbols",
+    );
+  });
+
+  // ── Free Spin Modifier validation ──
+
+  const MODIFIER_BASE = {
+    ...VALID_CONFIG,
+    symbols: [
+      { id: "cherry", name: "Cherry" },
+      { id: "bar", name: "Bar" },
+      { id: "wild", name: "Wild", wild: true },
+      { id: "scatter", name: "Scatter", scatter: true },
+    ],
+    reels: [
+      ["cherry", "bar", "wild", "scatter"],
+      ["bar", "cherry", "wild", "scatter"],
+      ["cherry", "bar", "wild", "scatter"],
+    ],
+    scatterRules: [
+      { symbolId: "scatter", count: 3, multiplier: 5, freeSpins: 10 },
+    ],
+  };
+
+  function modifierConfigWith(overrides: Record<string, unknown>): unknown {
+    return { ...MODIFIER_BASE, ...overrides };
+  }
+
+  it("accepts config with stickyWilds modifier", () => {
+    const result = validateGameConfig(
+      modifierConfigWith({ freeSpinModifiers: [{ type: "stickyWilds" }] }),
+    );
+    expect(result.freeSpinModifiers).toHaveLength(1);
+  });
+
+  it("accepts config with increasingMultiplier modifier", () => {
+    const result = validateGameConfig(
+      modifierConfigWith({
+        freeSpinModifiers: [{ type: "increasingMultiplier", startMultiplier: 1, increment: 1 }],
+      }),
+    );
+    expect(result.freeSpinModifiers).toHaveLength(1);
+  });
+
+  it("accepts config with extraWilds modifier", () => {
+    const result = validateGameConfig(
+      modifierConfigWith({
+        freeSpinModifiers: [{ type: "extraWilds", count: 3, wildSymbolId: "wild" }],
+      }),
+    );
+    expect(result.freeSpinModifiers).toHaveLength(1);
+  });
+
+  it("accepts config with symbolUpgrade modifier", () => {
+    const result = validateGameConfig(
+      modifierConfigWith({
+        freeSpinModifiers: [{ type: "symbolUpgrade", upgrades: [{ from: "cherry", to: "bar" }] }],
+      }),
+    );
+    expect(result.freeSpinModifiers).toHaveLength(1);
+  });
+
+  it("accepts config with multiple modifiers", () => {
+    const result = validateGameConfig(
+      modifierConfigWith({
+        freeSpinModifiers: [
+          { type: "stickyWilds" },
+          { type: "increasingMultiplier", startMultiplier: 1, increment: 1 },
+        ],
+      }),
+    );
+    expect(result.freeSpinModifiers).toHaveLength(2);
+  });
+
+  it("rejects freeSpinModifiers without scatterRules", () => {
+    const config = { ...MODIFIER_BASE, freeSpinModifiers: [{ type: "stickyWilds" }] };
+    delete (config as Record<string, unknown>)["scatterRules"];
+    expect(() => validateGameConfig(config)).toThrow("requires 'scatterRules'");
+  });
+
+  it("rejects duplicate modifier types", () => {
+    expect(() =>
+      validateGameConfig(
+        modifierConfigWith({
+          freeSpinModifiers: [{ type: "stickyWilds" }, { type: "stickyWilds" }],
+        }),
+      ),
+    ).toThrow("Duplicate freeSpinModifiers type");
+  });
+
+  it("rejects unknown modifier type", () => {
+    expect(() =>
+      validateGameConfig(
+        modifierConfigWith({ freeSpinModifiers: [{ type: "unknownType" }] }),
+      ),
+    ).toThrow("not a valid modifier type");
+  });
+
+  it("rejects stickyWilds without wild symbols", () => {
+    const noWildConfig = {
+      ...MODIFIER_BASE,
+      symbols: [
+        { id: "cherry", name: "Cherry" },
+        { id: "bar", name: "Bar" },
+        { id: "scatter", name: "Scatter", scatter: true },
+      ],
+      reels: [
+        ["cherry", "bar", "scatter"],
+        ["bar", "cherry", "scatter"],
+        ["cherry", "bar", "scatter"],
+      ],
+      freeSpinModifiers: [{ type: "stickyWilds" }],
+    };
+    expect(() => validateGameConfig(noWildConfig)).toThrow("requires at least one wild symbol");
+  });
+
+  it("rejects increasingMultiplier with missing fields", () => {
+    expect(() =>
+      validateGameConfig(
+        modifierConfigWith({ freeSpinModifiers: [{ type: "increasingMultiplier" }] }),
+      ),
+    ).toThrow("startMultiplier");
+  });
+
+  it("rejects extraWilds with invalid wildSymbolId", () => {
+    expect(() =>
+      validateGameConfig(
+        modifierConfigWith({
+          freeSpinModifiers: [{ type: "extraWilds", count: 2, wildSymbolId: "cherry" }],
+        }),
+      ),
+    ).toThrow("must reference a wild symbol");
+  });
+
+  it("rejects extraWilds with non-integer count", () => {
+    expect(() =>
+      validateGameConfig(
+        modifierConfigWith({
+          freeSpinModifiers: [{ type: "extraWilds", count: 1.5, wildSymbolId: "wild" }],
+        }),
+      ),
+    ).toThrow("positive integer");
+  });
+
+  it("rejects symbolUpgrade with unknown source symbol", () => {
+    expect(() =>
+      validateGameConfig(
+        modifierConfigWith({
+          freeSpinModifiers: [{ type: "symbolUpgrade", upgrades: [{ from: "unknown", to: "bar" }] }],
+        }),
+      ),
+    ).toThrow("must reference a known symbol");
+  });
+
+  it("rejects symbolUpgrade with empty upgrades", () => {
+    expect(() =>
+      validateGameConfig(
+        modifierConfigWith({
+          freeSpinModifiers: [{ type: "symbolUpgrade", upgrades: [] }],
+        }),
+      ),
+    ).toThrow("non-empty array");
+  });
+
+  it("accepts config without freeSpinModifiers (backward compat)", () => {
+    const result = validateGameConfig(VALID_CONFIG);
+    expect(result.freeSpinModifiers).toBeUndefined();
+  });
+
   it("collects multiple errors at once", () => {
     try {
       validateGameConfig({

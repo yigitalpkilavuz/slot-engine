@@ -1,4 +1,4 @@
-import type { SpinResult } from "@slot-engine/shared";
+import type { FreeSpinModifierState, SpinResult } from "@slot-engine/shared";
 import type { ClientGameConfig } from "../api/api-client.js";
 
 export class GameState {
@@ -9,6 +9,8 @@ export class GameState {
   private _isSpinning = false;
   private _lastResult: SpinResult | null = null;
   private _freeSpinsRemaining = 0;
+  private _freeSpinsTotalWin = 0;
+  private _activeModifierStates: readonly FreeSpinModifierState[] | null = null;
 
   get sessionId(): string {
     return this._sessionId;
@@ -40,6 +42,14 @@ export class GameState {
 
   get inFreeSpins(): boolean {
     return this._freeSpinsRemaining > 0;
+  }
+
+  get freeSpinsTotalWin(): number {
+    return this._freeSpinsTotalWin;
+  }
+
+  get activeModifierStates(): readonly FreeSpinModifierState[] | null {
+    return this._activeModifierStates;
   }
 
   get canSpin(): boolean {
@@ -77,7 +87,36 @@ export class GameState {
   setSpinResult(result: SpinResult, balance: number, freeSpinsRemaining: number): void {
     this._lastResult = result;
     this._balance = balance;
+
+    // Track free spin winnings
+    if (this._freeSpinsRemaining > 0) {
+      // Currently in free spins — accumulate payout
+      this._freeSpinsTotalWin += result.totalPayout;
+    } else if (freeSpinsRemaining > 0) {
+      // Free spins just triggered — reset and start accumulating
+      this._freeSpinsTotalWin = result.totalPayout;
+    }
+
     this._freeSpinsRemaining = freeSpinsRemaining;
+
+    // Track modifier states
+    if (freeSpinsRemaining > 0 && result.freeSpinModifierStates) {
+      this._activeModifierStates = result.freeSpinModifierStates;
+    } else if (freeSpinsRemaining <= 0) {
+      this._activeModifierStates = null;
+    }
+  }
+
+  restoreFreeSpins(
+    freeSpinsRemaining: number,
+    freeSpinAccumulatedWin: number,
+    bet: number,
+    modifierStates: readonly FreeSpinModifierState[] | null,
+  ): void {
+    this._freeSpinsRemaining = freeSpinsRemaining;
+    this._freeSpinsTotalWin = freeSpinAccumulatedWin;
+    this._currentBet = bet;
+    this._activeModifierStates = modifierStates;
   }
 
   clearLastResult(): void {

@@ -57,6 +57,15 @@ importers:
 
   packages/shared: {}
 
+  packages/tools:
+    dependencies:
+      '@slot-engine/server':
+        specifier: workspace:*
+        version: link:../server
+      '@slot-engine/shared':
+        specifier: workspace:*
+        version: link:../shared
+
 packages:
 
   '@esbuild/aix-ppc64@0.27.3':

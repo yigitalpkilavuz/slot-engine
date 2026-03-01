@@ -166,7 +166,7 @@ describe("POST /api/spin", () => {
 });
 
 describe("POST /api/spin (free spin mode)", () => {
-  it("does not deduct balance during free spins", async () => {
+  it("does not change balance during free spins", async () => {
     // Manually set up free spin state
     const freeSpinStore = new InMemorySessionStore();
     const freeSession = freeSpinStore.create(10000);
@@ -192,10 +192,46 @@ describe("POST /api/spin (free spin mode)", () => {
 
     expect(response.statusCode).toBe(200);
     const body = response.json();
-    // Balance should be 10000 + whatever was won (no deduction)
-    expect(body.balance).toBe(10000 + body.result.totalPayout);
+    // Balance unchanged during free spins (payouts accumulated)
+    if (body.freeSpinsRemaining > 0) {
+      expect(body.balance).toBe(10000);
+    }
     // Free spins should have decremented
     expect(body.freeSpinsRemaining).toBeLessThanOrEqual(2);
+  });
+
+  it("pays out accumulated winnings when bonus ends", async () => {
+    const store = new InMemorySessionStore();
+    const session = store.create(10000);
+    // Set 1 free spin remaining so the next spin ends the bonus
+    store.setFreeSpins(session.id, 1, 10);
+
+    const registry = new GameRegistry();
+    registry.register(TEST_CONFIG);
+
+    const testApp = createApp(
+      {
+        sessionStore: store,
+        gameRegistry: registry,
+        rng: new CryptoRng(),
+      },
+      { logger: false },
+    );
+
+    // Pre-accumulate some winnings from previous free spins
+    store.addFreeSpinWin(session.id, 500);
+
+    const response = await testApp.inject({
+      method: "POST",
+      url: "/api/spin",
+      payload: { sessionId: session.id, gameId: "test-game", bet: 10 },
+    });
+
+    expect(response.statusCode).toBe(200);
+    const body = response.json();
+    expect(body.freeSpinsRemaining).toBe(0);
+    // Balance = 10000 + 500 (previous accumulated) + this spin's payout
+    expect(body.balance).toBe(10000 + 500 + body.result.totalPayout);
   });
 });
 

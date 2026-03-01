@@ -63,6 +63,24 @@ export function validateGameConfig(data: unknown): GameConfig {
         if (sym["wild"] === true && sym["scatter"] === true) {
           errors.push(`symbols[${String(i)}] cannot be both wild and scatter`);
         }
+        if ("wildMultiplier" in sym) {
+          if (
+            typeof sym["wildMultiplier"] !== "number" ||
+            !Number.isFinite(sym["wildMultiplier"]) ||
+            sym["wildMultiplier"] <= 0
+          ) {
+            errors.push(`symbols[${String(i)}].wildMultiplier must be a finite positive number`);
+          } else if (sym["wild"] !== true) {
+            errors.push(`symbols[${String(i)}].wildMultiplier is only allowed on wild symbols`);
+          }
+        }
+        if ("expandingWild" in sym) {
+          if (typeof sym["expandingWild"] !== "boolean") {
+            errors.push(`symbols[${String(i)}].expandingWild must be a boolean`);
+          } else if (sym["wild"] !== true) {
+            errors.push(`symbols[${String(i)}].expandingWild is only allowed on wild symbols`);
+          }
+        }
         symbolIds.add(sym["id"]);
         if (sym["wild"] === true) {
           wildSymbolIds.add(sym["id"]);
@@ -193,6 +211,97 @@ export function validateGameConfig(data: unknown): GameConfig {
           rule["freeSpins"] < 0
         ) {
           errors.push(`scatterRules[${String(i)}].freeSpins must be a non-negative integer`);
+        }
+      }
+    }
+  }
+
+  if ("cascading" in data && typeof data["cascading"] !== "boolean") {
+    errors.push("'cascading' must be a boolean if provided");
+  }
+
+  if ("bonusBuyCostMultiplier" in data) {
+    if (
+      typeof data["bonusBuyCostMultiplier"] !== "number" ||
+      !Number.isFinite(data["bonusBuyCostMultiplier"]) ||
+      data["bonusBuyCostMultiplier"] <= 0
+    ) {
+      errors.push("'bonusBuyCostMultiplier' must be a finite positive number");
+    } else if (!Array.isArray(scatterRules) || scatterRules.length === 0) {
+      errors.push("'bonusBuyCostMultiplier' requires 'scatterRules' to be defined");
+    }
+  }
+
+  const freeSpinModifiers = data["freeSpinModifiers"];
+  if (freeSpinModifiers !== undefined) {
+    if (!Array.isArray(freeSpinModifiers)) {
+      errors.push("'freeSpinModifiers' must be an array if provided");
+    } else {
+      if (!Array.isArray(scatterRules) || scatterRules.length === 0) {
+        errors.push("'freeSpinModifiers' requires 'scatterRules' to be defined");
+      }
+
+      const seenTypes = new Set<string>();
+      for (const [i, mod] of freeSpinModifiers.entries()) {
+        if (!isRecord(mod)) {
+          errors.push(`freeSpinModifiers[${String(i)}] must be an object`);
+          continue;
+        }
+
+        const modType = mod["type"];
+        if (typeof modType !== "string") {
+          errors.push(`freeSpinModifiers[${String(i)}].type must be a string`);
+          continue;
+        }
+
+        if (seenTypes.has(modType)) {
+          errors.push(`Duplicate freeSpinModifiers type: '${modType}'`);
+          continue;
+        }
+        seenTypes.add(modType);
+
+        switch (modType) {
+          case "stickyWilds":
+            if (wildSymbolIds.size === 0) {
+              errors.push(`freeSpinModifiers[${String(i)}] (stickyWilds) requires at least one wild symbol`);
+            }
+            break;
+          case "increasingMultiplier":
+            if (typeof mod["startMultiplier"] !== "number" || mod["startMultiplier"] < 1) {
+              errors.push(`freeSpinModifiers[${String(i)}].startMultiplier must be a number >= 1`);
+            }
+            if (typeof mod["increment"] !== "number" || mod["increment"] < 1) {
+              errors.push(`freeSpinModifiers[${String(i)}].increment must be a positive number`);
+            }
+            break;
+          case "extraWilds":
+            if (typeof mod["count"] !== "number" || !Number.isInteger(mod["count"]) || mod["count"] < 1) {
+              errors.push(`freeSpinModifiers[${String(i)}].count must be a positive integer`);
+            }
+            if (typeof mod["wildSymbolId"] !== "string" || !wildSymbolIds.has(mod["wildSymbolId"])) {
+              errors.push(`freeSpinModifiers[${String(i)}].wildSymbolId must reference a wild symbol`);
+            }
+            break;
+          case "symbolUpgrade":
+            if (!Array.isArray(mod["upgrades"]) || mod["upgrades"].length === 0) {
+              errors.push(`freeSpinModifiers[${String(i)}].upgrades must be a non-empty array`);
+            } else {
+              for (const [j, upgrade] of (mod["upgrades"] as unknown[]).entries()) {
+                if (!isRecord(upgrade)) {
+                  errors.push(`freeSpinModifiers[${String(i)}].upgrades[${String(j)}] must be an object`);
+                  continue;
+                }
+                if (typeof upgrade["from"] !== "string" || !symbolIds.has(upgrade["from"])) {
+                  errors.push(`freeSpinModifiers[${String(i)}].upgrades[${String(j)}].from must reference a known symbol`);
+                }
+                if (typeof upgrade["to"] !== "string" || !symbolIds.has(upgrade["to"])) {
+                  errors.push(`freeSpinModifiers[${String(i)}].upgrades[${String(j)}].to must reference a known symbol`);
+                }
+              }
+            }
+            break;
+          default:
+            errors.push(`freeSpinModifiers[${String(i)}].type '${modType}' is not a valid modifier type`);
         }
       }
     }
