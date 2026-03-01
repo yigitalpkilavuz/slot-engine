@@ -1,6 +1,7 @@
 import { Assets, Container, Graphics, Sprite, Text, Texture, TextStyle } from "pixi.js";
 import { getSymbolTextureAlias } from "../assets/game-asset-registry.js";
 import {
+  FONT_DISPLAY,
   FONT_BODY,
   WHITE_SOFT,
   GOLD,
@@ -18,38 +19,70 @@ export const CELL_HEIGHT = 100;
 const CELL_CORNER_RADIUS = 12;
 const DEFAULT_COLOR = 0x64748b;
 
+const ICON_CY = 34;
+const LABEL_BOTTOM_Y = 82;
+
+// ── Label Styles ──────────────────────────────────────
+
 const LABEL_STYLE = new TextStyle({
   fontFamily: [...FONT_BODY],
-  fontSize: 15,
-  fontWeight: "bold",
+  fontSize: 11,
+  fontWeight: "600",
   fill: WHITE_SOFT,
-  letterSpacing: 1,
+  letterSpacing: 0.8,
 });
 
-const WILD_LABEL_STYLE = new TextStyle({
-  fontFamily: [...FONT_BODY],
-  fontSize: 15,
-  fontWeight: "bold",
-  fill: WHITE_SOFT,
-  letterSpacing: 1,
+const SEVEN_LABEL_STYLE = new TextStyle({
+  fontFamily: [...FONT_DISPLAY],
+  fontSize: 42,
+  fontWeight: "900",
+  fill: 0x6898e8,
   dropShadow: {
-    color: GOLD_BRIGHT,
+    color: 0x2050a0,
     blur: 8,
     alpha: 0.6,
     distance: 0,
   },
 });
 
+const BAR_LABEL_STYLE = new TextStyle({
+  fontFamily: [...FONT_DISPLAY],
+  fontSize: 24,
+  fontWeight: "900",
+  fill: 0x48d888,
+  letterSpacing: 4,
+  dropShadow: {
+    color: 0x1a8f50,
+    blur: 8,
+    alpha: 0.5,
+    distance: 0,
+  },
+});
+
+const WILD_LABEL_STYLE = new TextStyle({
+  fontFamily: [...FONT_DISPLAY],
+  fontSize: 24,
+  fontWeight: "900",
+  fill: 0xffeebb,
+  letterSpacing: 5,
+  dropShadow: {
+    color: GOLD_BRIGHT,
+    blur: 12,
+    alpha: 0.9,
+    distance: 0,
+  },
+});
+
 const SCATTER_LABEL_STYLE = new TextStyle({
-  fontFamily: [...FONT_BODY],
-  fontSize: 15,
-  fontWeight: "bold",
+  fontFamily: [...FONT_DISPLAY],
+  fontSize: 20,
+  fontWeight: "900",
   fill: WHITE_SOFT,
-  letterSpacing: 1,
+  letterSpacing: 3,
   dropShadow: {
     color: CORAL,
-    blur: 8,
-    alpha: 0.6,
+    blur: 12,
+    alpha: 0.9,
     distance: 0,
   },
 });
@@ -60,6 +93,8 @@ const BADGE_STYLE = new TextStyle({
   fontWeight: "900",
   fill: 0x08090f,
 });
+
+// ── Public API ────────────────────────────────────────
 
 export function getSymbolColor(symbolId: string): number {
   return SYMBOL_COLORS[symbolId] ?? DEFAULT_COLOR;
@@ -77,7 +112,7 @@ export function createSymbolCell(symbolId: string, badgeText?: string): Containe
     (cell as unknown as { _spriteMode: boolean })._spriteMode = true;
   } else {
     const bg = new Graphics();
-    drawCellBackground(bg, symbolId);
+    drawCellContent(bg, symbolId);
     cell.addChild(bg);
 
     const label = new Text({
@@ -86,7 +121,7 @@ export function createSymbolCell(symbolId: string, badgeText?: string): Containe
     });
     label.anchor.set(0.5);
     label.x = CELL_WIDTH / 2;
-    label.y = CELL_HEIGHT / 2;
+    label.y = getLabelY(symbolId);
     cell.addChild(label);
   }
 
@@ -122,10 +157,11 @@ export function updateSymbolCell(cell: Container, symbolId: string, badgeText?: 
       const label = cell.children[1] as Text;
 
       bg.clear();
-      drawCellBackground(bg, symbolId);
+      drawCellContent(bg, symbolId);
 
       label.style = getLabelStyle(symbolId);
       label.text = getLabel(symbolId);
+      label.y = getLabelY(symbolId);
     }
   }
 
@@ -134,57 +170,465 @@ export function updateSymbolCell(cell: Container, symbolId: string, badgeText?: 
   }
 }
 
-function getSymbolTexture(symbolId: string): Texture | undefined {
-  const alias = getSymbolTextureAlias(symbolId);
-  const texture = Assets.get<Texture>(alias);
-  return texture instanceof Texture ? texture : undefined;
+// ── Layout Helpers ────────────────────────────────────
+
+function hasIcon(symbolId: string): boolean {
+  return symbolId !== "wild" && symbolId !== "scatter" && symbolId !== "seven" && symbolId !== "bar";
 }
 
-function drawCellBackground(bg: Graphics, symbolId: string): void {
-  const color = getSymbolColor(symbolId);
-  const darkColor = darkenColor(color, 0.6);
-  const brightColor = lightenColor(color, 1.3);
-
-  // Layer 1: Dark base fill
-  bg.roundRect(0, 0, CELL_WIDTH, CELL_HEIGHT, CELL_CORNER_RADIUS);
-  bg.fill({ color: darkColor });
-
-  // Layer 2: Top highlight gradient (brighter top 40%)
-  bg.roundRect(0, 0, CELL_WIDTH, CELL_HEIGHT * 0.4, CELL_CORNER_RADIUS);
-  bg.fill({ color: brightColor, alpha: 0.2 });
-
-  // Layer 3: Inner glow (inset stroke)
-  bg.roundRect(1, 1, CELL_WIDTH - 2, CELL_HEIGHT - 2, CELL_CORNER_RADIUS - 1);
-  bg.stroke({ width: 1, color, alpha: 0.3 });
-
-  // Layer 4: Outer border
-  let borderColor = BORDER_SUBTLE;
-  let borderAlpha = 0.3;
-  let borderWidth = 1;
-
-  if (symbolId === "wild") {
-    borderColor = GOLD;
-    borderAlpha = 0.7;
-    borderWidth = 1.5;
-  } else if (symbolId === "scatter") {
-    borderColor = CORAL;
-    borderAlpha = 0.7;
-    borderWidth = 1.5;
-  }
-
-  bg.roundRect(0, 0, CELL_WIDTH, CELL_HEIGHT, CELL_CORNER_RADIUS);
-  bg.stroke({ width: borderWidth, color: borderColor, alpha: borderAlpha });
+function getLabelY(symbolId: string): number {
+  if (symbolId === "wild" || symbolId === "scatter") return 58;
+  if (hasIcon(symbolId)) return LABEL_BOTTOM_Y;
+  return CELL_HEIGHT / 2;
 }
 
 function getLabelStyle(symbolId: string): TextStyle {
   if (symbolId === "wild") return WILD_LABEL_STYLE;
   if (symbolId === "scatter") return SCATTER_LABEL_STYLE;
+  if (symbolId === "seven") return SEVEN_LABEL_STYLE;
+  if (symbolId === "bar") return BAR_LABEL_STYLE;
   return LABEL_STYLE;
 }
 
 function getLabel(symbolId: string): string {
   return SYMBOL_LABELS[symbolId] ?? symbolId.toUpperCase();
 }
+
+function getSymbolTexture(symbolId: string): Texture | undefined {
+  const alias = getSymbolTextureAlias(symbolId);
+  const texture = Assets.get<Texture>(alias);
+  return texture instanceof Texture ? texture : undefined;
+}
+
+// ── Cell Content Drawing ──────────────────────────────
+
+function drawCellContent(bg: Graphics, symbolId: string): void {
+  if (symbolId === "wild") {
+    drawWildCell(bg);
+    return;
+  }
+  if (symbolId === "scatter") {
+    drawScatterCell(bg);
+    return;
+  }
+  drawRegularBackground(bg, symbolId);
+  if (hasIcon(symbolId)) {
+    drawSymbolIcon(bg, symbolId, CELL_WIDTH / 2, ICON_CY);
+  }
+}
+
+// ── Regular Symbol Background ─────────────────────────
+
+function drawRegularBackground(bg: Graphics, symbolId: string): void {
+  const color = getSymbolColor(symbolId);
+  const darkColor = darkenColor(color, 0.5);
+  const brightColor = lightenColor(color, 1.4);
+
+  bg.roundRect(0, 0, CELL_WIDTH, CELL_HEIGHT, CELL_CORNER_RADIUS);
+  bg.fill({ color: darkColor });
+
+  bg.roundRect(0, 0, CELL_WIDTH, CELL_HEIGHT * 0.35, CELL_CORNER_RADIUS);
+  bg.fill({ color: brightColor, alpha: 0.12 });
+
+  bg.roundRect(1, 1, CELL_WIDTH - 2, CELL_HEIGHT - 2, CELL_CORNER_RADIUS - 1);
+  bg.stroke({ width: 1, color, alpha: 0.25 });
+
+  bg.roundRect(0, 0, CELL_WIDTH, CELL_HEIGHT, CELL_CORNER_RADIUS);
+  bg.stroke({ width: 1, color: BORDER_SUBTLE, alpha: 0.3 });
+}
+
+// ── Wild Cell ─────────────────────────────────────────
+
+function drawWildCell(bg: Graphics): void {
+  const cx = CELL_WIDTH / 2;
+  const cy = CELL_HEIGHT / 2;
+
+  bg.roundRect(0, 0, CELL_WIDTH, CELL_HEIGHT, CELL_CORNER_RADIUS);
+  bg.fill({ color: 0x2a2008 });
+
+  // Starburst rays
+  const rayCount = 10;
+  const innerR = 6;
+  const outerR = 75;
+  for (let i = 0; i < rayCount; i++) {
+    const angle = (i / rayCount) * Math.PI * 2 - Math.PI / 2;
+    const spread = (0.3 / rayCount) * Math.PI * 2;
+    bg.moveTo(cx + Math.cos(angle) * innerR, cy + Math.sin(angle) * innerR);
+    bg.lineTo(cx + Math.cos(angle - spread) * outerR, cy + Math.sin(angle - spread) * outerR);
+    bg.lineTo(cx + Math.cos(angle + spread) * outerR, cy + Math.sin(angle + spread) * outerR);
+    bg.closePath();
+    bg.fill({ color: GOLD, alpha: 0.1 });
+  }
+
+  // Center glow layers
+  bg.circle(cx, cy, 30);
+  bg.fill({ color: GOLD_BRIGHT, alpha: 0.08 });
+  bg.circle(cx, cy, 18);
+  bg.fill({ color: GOLD_BRIGHT, alpha: 0.06 });
+
+  // Small diamond icon above text
+  bg.star(cx, 26, 4, 10, 4, 0);
+  bg.fill({ color: GOLD_BRIGHT, alpha: 0.7 });
+
+  // Thick gold border
+  bg.roundRect(0, 0, CELL_WIDTH, CELL_HEIGHT, CELL_CORNER_RADIUS);
+  bg.stroke({ width: 3, color: GOLD_BRIGHT, alpha: 0.9 });
+  bg.roundRect(3, 3, CELL_WIDTH - 6, CELL_HEIGHT - 6, CELL_CORNER_RADIUS - 2);
+  bg.stroke({ width: 1, color: GOLD, alpha: 0.35 });
+
+  // Corner sparkles
+  const corners: [number, number][] = [[12, 12], [CELL_WIDTH - 12, 12], [12, CELL_HEIGHT - 12], [CELL_WIDTH - 12, CELL_HEIGHT - 12]];
+  for (const [sx, sy] of corners) {
+    bg.star(sx, sy, 4, 3.5, 1.2, 0);
+    bg.fill({ color: GOLD_BRIGHT, alpha: 0.5 });
+  }
+}
+
+// ── Scatter Cell ──────────────────────────────────────
+
+function drawScatterCell(bg: Graphics): void {
+  const cx = CELL_WIDTH / 2;
+  const cy = CELL_HEIGHT / 2;
+
+  bg.roundRect(0, 0, CELL_WIDTH, CELL_HEIGHT, CELL_CORNER_RADIUS);
+  bg.fill({ color: 0x200a0a });
+
+  // Concentric rings
+  bg.circle(cx, cy, 42);
+  bg.stroke({ width: 1.5, color: CORAL, alpha: 0.1 });
+  bg.circle(cx, cy, 32);
+  bg.stroke({ width: 1.5, color: CORAL, alpha: 0.14 });
+  bg.circle(cx, cy, 22);
+  bg.stroke({ width: 1.5, color: CORAL, alpha: 0.18 });
+
+  // Center glow
+  bg.circle(cx, cy, 26);
+  bg.fill({ color: CORAL, alpha: 0.06 });
+
+  // Orbital dots
+  const dotR = 34;
+  for (let i = 0; i < 8; i++) {
+    const angle = (i / 8) * Math.PI * 2 + Math.PI / 8;
+    bg.circle(cx + Math.cos(angle) * dotR, cy + Math.sin(angle) * dotR, 2);
+    bg.fill({ color: 0xff8080, alpha: 0.3 });
+  }
+
+  // Small ring icon above text
+  bg.circle(cx, 24, 8);
+  bg.stroke({ width: 2.5, color: 0xff8080, alpha: 0.7 });
+  bg.circle(cx, 24, 3);
+  bg.fill({ color: 0xff8080, alpha: 0.5 });
+
+  // Thick coral border
+  bg.roundRect(0, 0, CELL_WIDTH, CELL_HEIGHT, CELL_CORNER_RADIUS);
+  bg.stroke({ width: 3, color: CORAL, alpha: 0.9 });
+  bg.roundRect(3, 3, CELL_WIDTH - 6, CELL_HEIGHT - 6, CELL_CORNER_RADIUS - 2);
+  bg.stroke({ width: 1, color: 0xff8080, alpha: 0.25 });
+}
+
+// ── Symbol Icon Dispatch ──────────────────────────────
+
+function drawSymbolIcon(bg: Graphics, symbolId: string, cx: number, cy: number): void {
+  const drawer = ICON_DRAWERS[symbolId];
+  if (drawer) drawer(bg, cx, cy);
+}
+
+const ICON_DRAWERS: Record<string, (g: Graphics, cx: number, cy: number) => void> = {
+  cherry: drawCherry,
+  lemon: drawLemon,
+  orange: drawOrange,
+  plum: drawPlum,
+  bell: drawBell,
+  strawberry: drawStrawberry,
+  watermelon: drawWatermelon,
+  grape: drawGrape,
+  banana: drawBanana,
+  pineapple: drawPineapple,
+  coconut: drawCoconut,
+  diamond: drawDiamond,
+  star: drawStarIcon,
+};
+
+// ── Individual Icon Drawings ──────────────────────────
+
+function drawCherry(g: Graphics, cx: number, cy: number): void {
+  // Berries
+  g.circle(cx - 9, cy + 5, 10);
+  g.fill({ color: 0xff4040 });
+  g.circle(cx + 7, cy + 2, 10);
+  g.fill({ color: 0xe83838 });
+  // Highlights
+  g.circle(cx - 12, cy + 1, 3);
+  g.fill({ color: 0xff9090, alpha: 0.45 });
+  g.circle(cx + 4, cy - 2, 2.5);
+  g.fill({ color: 0xff9090, alpha: 0.4 });
+  // Stems
+  g.moveTo(cx - 7, cy - 4);
+  g.quadraticCurveTo(cx - 2, cy - 22, cx + 2, cy - 18);
+  g.stroke({ width: 2.5, color: 0x3d9e3d });
+  g.moveTo(cx + 5, cy - 7);
+  g.quadraticCurveTo(cx + 1, cy - 22, cx + 2, cy - 18);
+  g.stroke({ width: 2.5, color: 0x3d9e3d });
+  // Leaf
+  g.ellipse(cx + 7, cy - 17, 7, 3.5);
+  g.fill({ color: 0x4db84d });
+}
+
+function drawLemon(g: Graphics, cx: number, cy: number): void {
+  // Body
+  g.ellipse(cx, cy, 22, 14);
+  g.fill({ color: 0xffd740 });
+  // Pointed tips
+  g.moveTo(cx - 22, cy);
+  g.lineTo(cx - 27, cy - 2);
+  g.lineTo(cx - 23, cy + 3);
+  g.closePath();
+  g.fill({ color: 0xf0c830 });
+  g.moveTo(cx + 22, cy);
+  g.lineTo(cx + 27, cy + 2);
+  g.lineTo(cx + 23, cy - 3);
+  g.closePath();
+  g.fill({ color: 0xf0c830 });
+  // Highlight
+  g.ellipse(cx - 5, cy - 4, 10, 5);
+  g.fill({ color: 0xffeb80, alpha: 0.35 });
+}
+
+function drawOrange(g: Graphics, cx: number, cy: number): void {
+  g.circle(cx, cy + 2, 18);
+  g.fill({ color: 0xff8030 });
+  // Highlight
+  g.circle(cx - 6, cy - 4, 7);
+  g.fill({ color: 0xffa060, alpha: 0.35 });
+  // Navel
+  g.circle(cx + 1, cy + 16, 2.5);
+  g.fill({ color: 0xd06020, alpha: 0.5 });
+  // Stem
+  g.moveTo(cx, cy - 16);
+  g.lineTo(cx + 1, cy - 20);
+  g.stroke({ width: 2, color: 0x6b4226 });
+  // Leaf
+  g.ellipse(cx + 5, cy - 19, 6, 3);
+  g.fill({ color: 0x4db84d });
+}
+
+function drawPlum(g: Graphics, cx: number, cy: number): void {
+  g.circle(cx, cy + 2, 16);
+  g.fill({ color: 0x9040d0 });
+  // Highlight
+  g.circle(cx - 5, cy - 3, 6);
+  g.fill({ color: 0xb870f0, alpha: 0.3 });
+  // Stem
+  g.moveTo(cx + 1, cy - 13);
+  g.lineTo(cx + 3, cy - 21);
+  g.stroke({ width: 2, color: 0x6b4226 });
+  // Leaf
+  g.ellipse(cx + 7, cy - 19, 5, 3);
+  g.fill({ color: 0x4db84d });
+}
+
+function drawBell(g: Graphics, cx: number, cy: number): void {
+  // Bell body
+  g.moveTo(cx - 18, cy + 10);
+  g.quadraticCurveTo(cx - 20, cy - 8, cx, cy - 18);
+  g.quadraticCurveTo(cx + 20, cy - 8, cx + 18, cy + 10);
+  g.lineTo(cx + 22, cy + 14);
+  g.lineTo(cx - 22, cy + 14);
+  g.closePath();
+  g.fill({ color: 0xffc030 });
+  // Highlight
+  g.moveTo(cx - 10, cy + 6);
+  g.quadraticCurveTo(cx - 14, cy - 4, cx - 4, cy - 12);
+  g.quadraticCurveTo(cx - 2, cy - 4, cx - 5, cy + 4);
+  g.closePath();
+  g.fill({ color: 0xffdd70, alpha: 0.3 });
+  // Clapper
+  g.circle(cx, cy + 18, 3.5);
+  g.fill({ color: 0xd4a020 });
+  // Handle
+  g.circle(cx, cy - 20, 3);
+  g.stroke({ width: 2, color: 0xd4a020 });
+}
+
+function drawStrawberry(g: Graphics, cx: number, cy: number): void {
+  // Body
+  g.moveTo(cx, cy + 18);
+  g.quadraticCurveTo(cx - 20, cy + 2, cx - 14, cy - 6);
+  g.quadraticCurveTo(cx - 6, cy - 14, cx, cy - 12);
+  g.quadraticCurveTo(cx + 6, cy - 14, cx + 14, cy - 6);
+  g.quadraticCurveTo(cx + 20, cy + 2, cx, cy + 18);
+  g.closePath();
+  g.fill({ color: 0xff3050 });
+  // Seeds
+  const seeds: [number, number][] = [
+    [cx - 6, cy - 3], [cx + 6, cy - 3],
+    [cx - 8, cy + 5], [cx, cy + 3], [cx + 8, cy + 5],
+    [cx - 4, cy + 11], [cx + 4, cy + 11],
+  ];
+  for (const [sx, sy] of seeds) {
+    g.circle(sx, sy, 1.3);
+    g.fill({ color: 0xffcc40, alpha: 0.7 });
+  }
+  // Green top
+  g.moveTo(cx - 8, cy - 10);
+  g.lineTo(cx - 3, cy - 6);
+  g.lineTo(cx, cy - 14);
+  g.lineTo(cx + 3, cy - 6);
+  g.lineTo(cx + 8, cy - 10);
+  g.lineTo(cx + 4, cy - 4);
+  g.lineTo(cx, cy - 8);
+  g.lineTo(cx - 4, cy - 4);
+  g.closePath();
+  g.fill({ color: 0x4db84d });
+}
+
+function drawWatermelon(g: Graphics, cx: number, cy: number): void {
+  // Green rind
+  g.arc(cx, cy + 4, 20, Math.PI, 0);
+  g.lineTo(cx + 20, cy + 4);
+  g.lineTo(cx - 20, cy + 4);
+  g.closePath();
+  g.fill({ color: 0x30a060 });
+  // Red flesh
+  g.arc(cx, cy + 4, 16, Math.PI, 0);
+  g.lineTo(cx + 16, cy + 4);
+  g.lineTo(cx - 16, cy + 4);
+  g.closePath();
+  g.fill({ color: 0xff4060 });
+  // Seeds
+  const seeds: [number, number][] = [[-7, -3], [0, -7], [7, -3], [-4, 0], [4, 0]];
+  for (const [sx, sy] of seeds) {
+    g.ellipse(cx + sx, cy + 4 + sy, 1.5, 2.5);
+    g.fill({ color: 0x1a1a1a });
+  }
+}
+
+function drawGrape(g: Graphics, cx: number, cy: number): void {
+  const r = 5.5;
+  const positions: [number, number][] = [
+    [cx, cy - 11],
+    [cx - 7, cy - 1], [cx + 7, cy - 1],
+    [cx - 11, cy + 9], [cx, cy + 9], [cx + 11, cy + 9],
+  ];
+  for (const [gx, gy] of positions) {
+    g.circle(gx, gy, r);
+    g.fill({ color: 0x9050f0 });
+  }
+  // Highlight on top grape
+  g.circle(cx - 2, cy - 13, 2);
+  g.fill({ color: 0xc090ff, alpha: 0.35 });
+  // Stem
+  g.moveTo(cx, cy - 16);
+  g.lineTo(cx, cy - 24);
+  g.stroke({ width: 2, color: 0x6b4226 });
+  // Leaf
+  g.ellipse(cx + 5, cy - 22, 6, 3);
+  g.fill({ color: 0x4db84d });
+}
+
+function drawBanana(g: Graphics, cx: number, cy: number): void {
+  g.moveTo(cx - 6, cy + 14);
+  g.quadraticCurveTo(cx - 22, cy - 6, cx - 4, cy - 16);
+  g.quadraticCurveTo(cx + 2, cy - 20, cx + 6, cy - 16);
+  g.quadraticCurveTo(cx - 8, cy - 2, cx, cy + 12);
+  g.closePath();
+  g.fill({ color: 0xffe850 });
+  // Highlight
+  g.moveTo(cx - 3, cy + 8);
+  g.quadraticCurveTo(cx - 16, cy - 2, cx, cy - 14);
+  g.quadraticCurveTo(cx - 10, cy, cx - 1, cy + 6);
+  g.closePath();
+  g.fill({ color: 0xfff090, alpha: 0.3 });
+  // Tip
+  g.circle(cx - 5, cy + 14, 2);
+  g.fill({ color: 0x8b6914 });
+}
+
+function drawPineapple(g: Graphics, cx: number, cy: number): void {
+  // Body
+  g.ellipse(cx, cy + 2, 14, 18);
+  g.fill({ color: 0xf0a020 });
+  // Cross-hatch
+  for (let i = -1; i <= 1; i++) {
+    g.moveTo(cx + i * 9 - 3, cy - 14);
+    g.lineTo(cx + i * 9 + 3, cy + 18);
+    g.stroke({ width: 1, color: 0xc08010, alpha: 0.35 });
+  }
+  for (let j = -1; j <= 1; j++) {
+    g.moveTo(cx - 13, cy + 2 + j * 9);
+    g.lineTo(cx + 13, cy + 2 + j * 9);
+    g.stroke({ width: 1, color: 0xc08010, alpha: 0.35 });
+  }
+  // Crown
+  g.moveTo(cx, cy - 18);
+  g.lineTo(cx - 5, cy - 28);
+  g.lineTo(cx, cy - 22);
+  g.lineTo(cx + 5, cy - 28);
+  g.closePath();
+  g.fill({ color: 0x40b050 });
+  g.moveTo(cx - 3, cy - 18);
+  g.lineTo(cx - 10, cy - 25);
+  g.stroke({ width: 2, color: 0x40b050 });
+  g.moveTo(cx + 3, cy - 18);
+  g.lineTo(cx + 10, cy - 25);
+  g.stroke({ width: 2, color: 0x40b050 });
+}
+
+function drawCoconut(g: Graphics, cx: number, cy: number): void {
+  // Shell
+  g.circle(cx, cy, 17);
+  g.fill({ color: 0x7a5c3a });
+  // Texture line
+  g.moveTo(cx - 12, cy - 5);
+  g.quadraticCurveTo(cx, cy - 12, cx + 12, cy - 5);
+  g.stroke({ width: 1.5, color: 0x5a3e20, alpha: 0.5 });
+  // White flesh (lower half)
+  g.arc(cx, cy + 2, 13, 0, Math.PI);
+  g.closePath();
+  g.fill({ color: 0xf0e8d8 });
+}
+
+function drawDiamond(g: Graphics, cx: number, cy: number): void {
+  // Crown (top)
+  g.moveTo(cx, cy - 20);
+  g.lineTo(cx + 20, cy - 4);
+  g.lineTo(cx - 20, cy - 4);
+  g.closePath();
+  g.fill({ color: 0x60e0ff });
+  // Pavilion (bottom)
+  g.moveTo(cx - 20, cy - 4);
+  g.lineTo(cx + 20, cy - 4);
+  g.lineTo(cx, cy + 18);
+  g.closePath();
+  g.fill({ color: 0x40c8e8 });
+  // Facet lines
+  g.moveTo(cx - 8, cy - 4);
+  g.lineTo(cx, cy + 18);
+  g.stroke({ width: 1, color: 0x90f0ff, alpha: 0.4 });
+  g.moveTo(cx + 8, cy - 4);
+  g.lineTo(cx, cy + 18);
+  g.stroke({ width: 1, color: 0x90f0ff, alpha: 0.4 });
+  // Girdle line
+  g.moveTo(cx - 20, cy - 4);
+  g.lineTo(cx + 20, cy - 4);
+  g.stroke({ width: 1, color: 0x90f0ff, alpha: 0.45 });
+  // Highlight facet
+  g.moveTo(cx - 8, cy - 4);
+  g.lineTo(cx, cy - 20);
+  g.lineTo(cx - 2, cy - 4);
+  g.closePath();
+  g.fill({ color: 0xb8f4ff, alpha: 0.3 });
+}
+
+function drawStarIcon(g: Graphics, cx: number, cy: number): void {
+  g.star(cx, cy, 5, 20, 9, -Math.PI / 2);
+  g.fill({ color: 0xffd030 });
+  // Inner highlight
+  g.star(cx - 2, cy - 2, 5, 12, 5, -Math.PI / 2);
+  g.fill({ color: 0xffee80, alpha: 0.25 });
+}
+
+// ── Badge Functions ───────────────────────────────────
 
 const BADGE_TAG = "_badge";
 

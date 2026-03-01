@@ -10,15 +10,45 @@
     { "id": "grape", "name": "Grape" },
     { "id": "diamond", "name": "Diamond" },
     { "id": "star", "name": "Star" },
-    { "id": "wild", "name": "Wild", "wild": true, "expandingWild": true, "wildMultiplier": 2 },
+    { "id": "wild", "name": "Wild", "wild": true, "expandingWild": true },
     { "id": "scatter", "name": "Scatter", "scatter": true }
   ],
   "reels": [
-    ["cherry", "cherry", "cherry", "lemon", "orange", "plum", "grape", "diamond", "lemon", "lemon", "star", "scatter", "orange", "plum", "grape", "grape", "grape", "wild", "cherry", "star"],
-    ["lemon", "orange", "orange", "orange", "plum", "cherry", "diamond", "grape", "star", "scatter", "cherry", "lemon", "plum", "plum", "plum", "grape", "diamond", "wild", "lemon", "cherry"],
-    ["orange", "plum", "cherry", "lemon", "grape", "grape", "grape", "diamond", "star", "star", "star", "scatter", "cherry", "lemon", "orange", "plum", "wild", "diamond", "cherry", "lemon"],
-    ["plum", "grape", "diamond", "diamond", "diamond", "cherry", "lemon", "orange", "scatter", "star", "cherry", "lemon", "grape", "plum", "wild", "orange", "cherry", "lemon", "star", "grape"],
-    ["grape", "star", "cherry", "lemon", "orange", "plum", "plum", "plum", "diamond", "scatter", "cherry", "lemon", "orange", "grape", "star", "star", "wild", "cherry", "diamond", "lemon"]
+    [
+      "cherry", "lemon", "orange", "plum", "grape", "cherry", "lemon", "orange", "plum", "grape",
+      "cherry", "lemon", "orange", "plum", "diamond", "cherry", "lemon", "orange", "plum", "grape",
+      "cherry", "lemon", "scatter", "plum", "grape", "cherry", "lemon", "orange", "plum", "grape",
+      "cherry", "lemon", "orange", "star", "grape", "cherry", "lemon", "orange", "plum", "grape",
+      "cherry", "lemon", "orange", "plum", "wild", "grape", "diamond", "lemon", "star", "orange"
+    ],
+    [
+      "lemon", "orange", "plum", "grape", "cherry", "lemon", "orange", "plum", "grape", "cherry",
+      "lemon", "orange", "plum", "grape", "star", "lemon", "orange", "plum", "grape", "cherry",
+      "lemon", "orange", "plum", "scatter", "cherry", "lemon", "orange", "plum", "grape", "cherry",
+      "lemon", "orange", "diamond", "grape", "cherry", "lemon", "orange", "plum", "grape", "cherry",
+      "lemon", "orange", "plum", "grape", "wild", "cherry", "star", "plum", "diamond", "cherry"
+    ],
+    [
+      "orange", "plum", "grape", "cherry", "lemon", "orange", "plum", "grape", "cherry", "lemon",
+      "orange", "plum", "grape", "cherry", "diamond", "orange", "plum", "grape", "cherry", "lemon",
+      "orange", "plum", "grape", "cherry", "scatter", "lemon", "orange", "plum", "grape", "cherry",
+      "lemon", "star", "plum", "grape", "cherry", "orange", "plum", "grape", "cherry", "lemon",
+      "orange", "plum", "grape", "wild", "cherry", "lemon", "diamond", "star", "orange", "plum"
+    ],
+    [
+      "plum", "grape", "cherry", "lemon", "orange", "plum", "grape", "cherry", "lemon", "orange",
+      "plum", "grape", "cherry", "lemon", "star", "plum", "grape", "cherry", "lemon", "orange",
+      "plum", "grape", "cherry", "lemon", "orange", "scatter", "plum", "grape", "cherry", "lemon",
+      "diamond", "grape", "cherry", "lemon", "orange", "plum", "grape", "cherry", "lemon", "orange",
+      "plum", "grape", "wild", "cherry", "lemon", "orange", "diamond", "star", "grape", "plum"
+    ],
+    [
+      "grape", "cherry", "lemon", "orange", "plum", "grape", "cherry", "lemon", "orange", "plum",
+      "grape", "cherry", "lemon", "orange", "diamond", "grape", "cherry", "lemon", "orange", "plum",
+      "grape", "cherry", "lemon", "orange", "plum", "grape", "scatter", "cherry", "lemon", "orange",
+      "star", "plum", "grape", "cherry", "lemon", "orange", "plum", "grape", "cherry", "lemon",
+      "orange", "plum", "wild", "grape", "cherry", "lemon", "diamond", "star", "orange", "plum"
+    ]
   ],
   "paylines": [
     [1, 1, 1, 1, 1],
@@ -28,28 +58,28 @@
     [2, 1, 0, 1, 2]
   ],
   "payouts": [
-    { "symbolId": "cherry", "count": 3, "multiplier": 2 },
-    { "symbolId": "cherry", "count": 5, "multiplier": 15 },
-    { "symbolId": "lemon", "count": 3, "multiplier": 2 },
-    { "symbolId": "lemon", "count": 5, "multiplier": 15 },
-    { "symbolId": "orange", "count": 3, "multiplier": 3 },
-    { "symbolId": "orange", "count": 5, "multiplier": 20 },
-    { "symbolId": "plum", "count": 3, "multiplier": 3 },
-    { "symbolId": "plum", "count": 5, "multiplier": 20 },
-    { "symbolId": "grape", "count": 3, "multiplier": 4 },
-    { "symbolId": "grape", "count": 5, "multiplier": 25 },
-    { "symbolId": "diamond", "count": 3, "multiplier": 10 },
-    { "symbolId": "diamond", "count": 5, "multiplier": 100 },
-    { "symbolId": "star", "count": 3, "multiplier": 8 },
-    { "symbolId": "star", "count": 5, "multiplier": 75 }
+    { "symbolId": "cherry", "count": 3, "multiplier": 1 },
+    { "symbolId": "cherry", "count": 5, "multiplier": 12 },
+    { "symbolId": "lemon", "count": 3, "multiplier": 1 },
+    { "symbolId": "lemon", "count": 5, "multiplier": 12 },
+    { "symbolId": "orange", "count": 3, "multiplier": 2 },
+    { "symbolId": "orange", "count": 5, "multiplier": 18 },
+    { "symbolId": "plum", "count": 3, "multiplier": 2 },
+    { "symbolId": "plum", "count": 5, "multiplier": 18 },
+    { "symbolId": "grape", "count": 3, "multiplier": 3 },
+    { "symbolId": "grape", "count": 5, "multiplier": 28 },
+    { "symbolId": "diamond", "count": 3, "multiplier": 5 },
+    { "symbolId": "diamond", "count": 5, "multiplier": 40 },
+    { "symbolId": "star", "count": 3, "multiplier": 4 },
+    { "symbolId": "star", "count": 5, "multiplier": 28 }
   ],
   "scatterRules": [
-    { "symbolId": "scatter", "count": 3, "multiplier": 5, "freeSpins": 10 },
-    { "symbolId": "scatter", "count": 4, "multiplier": 15, "freeSpins": 15 },
-    { "symbolId": "scatter", "count": 5, "multiplier": 50, "freeSpins": 25 }
+    { "symbolId": "scatter", "count": 3, "multiplier": 2, "freeSpins": 8 },
+    { "symbolId": "scatter", "count": 4, "multiplier": 5, "freeSpins": 10 },
+    { "symbolId": "scatter", "count": 5, "multiplier": 15, "freeSpins": 12 }
   ],
   "freeSpinModifiers": [
-    { "type": "extraWilds", "count": 3, "wildSymbolId": "wild" }
+    { "type": "extraWilds", "count": 1, "wildSymbolId": "wild" }
   ],
   "cascading": true,
   "bonusBuyCostMultiplier": 75,

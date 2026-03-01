@@ -270,8 +270,15 @@ export function validateGameConfig(data: unknown): GameConfig {
             if (typeof mod["startMultiplier"] !== "number" || mod["startMultiplier"] < 1) {
               errors.push(`freeSpinModifiers[${String(i)}].startMultiplier must be a number >= 1`);
             }
-            if (typeof mod["increment"] !== "number" || mod["increment"] < 1) {
+            if (typeof mod["increment"] !== "number" || mod["increment"] <= 0) {
               errors.push(`freeSpinModifiers[${String(i)}].increment must be a positive number`);
+            }
+            if ("maxMultiplier" in mod) {
+              if (typeof mod["maxMultiplier"] !== "number" || !Number.isFinite(mod["maxMultiplier"])) {
+                errors.push(`freeSpinModifiers[${String(i)}].maxMultiplier must be a finite number`);
+              } else if (typeof mod["startMultiplier"] === "number" && mod["maxMultiplier"] < mod["startMultiplier"]) {
+                errors.push(`freeSpinModifiers[${String(i)}].maxMultiplier must be >= startMultiplier`);
+              }
             }
             break;
           case "extraWilds":

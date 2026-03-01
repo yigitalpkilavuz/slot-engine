@@ -138,6 +138,45 @@ describe("spin with free spin modifiers", () => {
     expect(result.freeSpinModifierStates).toBeUndefined();
   });
 
+  it("caps multiplier at maxMultiplier when set", () => {
+    const config: GameConfig = {
+      ...BASE_CONFIG,
+      freeSpinModifiers: [
+        { type: "increasingMultiplier", startMultiplier: 1, increment: 1, maxMultiplier: 3 },
+      ],
+    };
+
+    const r1 = spin(config, 10, seededRng(1), false, true);
+    const r2 = spin(config, 10, seededRng(2), false, true, r1.freeSpinModifierStates);
+    const r3 = spin(config, 10, seededRng(3), false, true, r2.freeSpinModifierStates);
+    const r4 = spin(config, 10, seededRng(4), false, true, r3.freeSpinModifierStates);
+
+    const s3 = r3.freeSpinModifierStates!.find((s) => s.type === "increasingMultiplier");
+    expect((s3 as { currentMultiplier: number }).currentMultiplier).toBe(3);
+
+    // Should NOT exceed maxMultiplier
+    const s4 = r4.freeSpinModifierStates!.find((s) => s.type === "increasingMultiplier");
+    expect((s4 as { currentMultiplier: number }).currentMultiplier).toBe(3);
+  });
+
+  it("grows unbounded when maxMultiplier is not set", () => {
+    const config: GameConfig = {
+      ...BASE_CONFIG,
+      freeSpinModifiers: [
+        { type: "increasingMultiplier", startMultiplier: 1, increment: 1 },
+      ],
+    };
+
+    let states = undefined;
+    for (let i = 0; i < 10; i++) {
+      const r = spin(config, 10, seededRng(i), false, true, states);
+      states = r.freeSpinModifierStates;
+    }
+
+    const final = states?.find((s) => s.type === "increasingMultiplier");
+    expect((final as { currentMultiplier: number }).currentMultiplier).toBe(10);
+  });
+
   it("multiplier scales totalPayout correctly", () => {
     const config: GameConfig = {
       ...BASE_CONFIG,

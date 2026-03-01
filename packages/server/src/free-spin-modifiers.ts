@@ -116,9 +116,11 @@ export function applyIncreasingMultiplier(
   modifier: IncreasingMultiplierModifier,
   previousState: IncreasingMultiplierState | undefined,
 ): { state: IncreasingMultiplierState } {
-  const currentMultiplier = previousState
+  const raw = previousState
     ? previousState.currentMultiplier + modifier.increment
     : modifier.startMultiplier;
+  const currentMultiplier =
+    modifier.maxMultiplier != null ? Math.min(raw, modifier.maxMultiplier) : raw;
 
   return { state: { type: "increasingMultiplier", currentMultiplier } };
 }

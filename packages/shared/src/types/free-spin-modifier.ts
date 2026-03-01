@@ -8,6 +8,7 @@ export interface IncreasingMultiplierModifier {
   readonly type: "increasingMultiplier";
   readonly startMultiplier: number;
   readonly increment: number;
+  readonly maxMultiplier?: number;
 }
 
 export interface ExtraWildsModifier {
