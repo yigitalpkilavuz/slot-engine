@@ -15,39 +15,59 @@
   ],
   "reels": [
     [
-      "cherry", "lemon", "orange", "plum", "grape", "cherry", "lemon", "orange", "plum", "grape",
-      "cherry", "lemon", "orange", "plum", "diamond", "cherry", "lemon", "orange", "plum", "grape",
-      "cherry", "lemon", "scatter", "plum", "grape", "cherry", "lemon", "orange", "plum", "grape",
-      "cherry", "lemon", "orange", "star", "grape", "cherry", "lemon", "orange", "plum", "grape",
-      "cherry", "lemon", "orange", "plum", "wild", "grape", "diamond", "lemon", "star", "orange"
+      { "symbolId": "cherry", "weight": 10 },
+      { "symbolId": "lemon", "weight": 10 },
+      { "symbolId": "orange", "weight": 10 },
+      { "symbolId": "plum", "weight": 10 },
+      { "symbolId": "grape", "weight": 10 },
+      { "symbolId": "diamond", "weight": 3 },
+      { "symbolId": "star", "weight": 2 },
+      { "symbolId": "wild", "weight": 1 },
+      { "symbolId": "scatter", "weight": 1 }
     ],
     [
-      "lemon", "orange", "plum", "grape", "cherry", "lemon", "orange", "plum", "grape", "cherry",
-      "lemon", "orange", "plum", "grape", "star", "lemon", "orange", "plum", "grape", "cherry",
-      "lemon", "orange", "plum", "scatter", "cherry", "lemon", "orange", "plum", "grape", "cherry",
-      "lemon", "orange", "diamond", "grape", "cherry", "lemon", "orange", "plum", "grape", "cherry",
-      "lemon", "orange", "plum", "grape", "wild", "cherry", "star", "plum", "diamond", "cherry"
+      { "symbolId": "cherry", "weight": 10 },
+      { "symbolId": "lemon", "weight": 10 },
+      { "symbolId": "orange", "weight": 10 },
+      { "symbolId": "plum", "weight": 10 },
+      { "symbolId": "grape", "weight": 10 },
+      { "symbolId": "diamond", "weight": 2 },
+      { "symbolId": "star", "weight": 2 },
+      { "symbolId": "wild", "weight": 1 },
+      { "symbolId": "scatter", "weight": 1 }
     ],
     [
-      "orange", "plum", "grape", "cherry", "lemon", "orange", "plum", "grape", "cherry", "lemon",
-      "orange", "plum", "grape", "cherry", "diamond", "orange", "plum", "grape", "cherry", "lemon",
-      "orange", "plum", "grape", "cherry", "scatter", "lemon", "orange", "plum", "grape", "cherry",
-      "lemon", "star", "plum", "grape", "cherry", "orange", "plum", "grape", "cherry", "lemon",
-      "orange", "plum", "grape", "wild", "cherry", "lemon", "diamond", "star", "orange", "plum"
+      { "symbolId": "cherry", "weight": 10 },
+      { "symbolId": "lemon", "weight": 10 },
+      { "symbolId": "orange", "weight": 10 },
+      { "symbolId": "plum", "weight": 10 },
+      { "symbolId": "grape", "weight": 10 },
+      { "symbolId": "diamond", "weight": 2 },
+      { "symbolId": "star", "weight": 2 },
+      { "symbolId": "wild", "weight": 1 },
+      { "symbolId": "scatter", "weight": 1 }
     ],
     [
-      "plum", "grape", "cherry", "lemon", "orange", "plum", "grape", "cherry", "lemon", "orange",
-      "plum", "grape", "cherry", "lemon", "star", "plum", "grape", "cherry", "lemon", "orange",
-      "plum", "grape", "cherry", "lemon", "orange", "scatter", "plum", "grape", "cherry", "lemon",
-      "diamond", "grape", "cherry", "lemon", "orange", "plum", "grape", "cherry", "lemon", "orange",
-      "plum", "grape", "wild", "cherry", "lemon", "orange", "diamond", "star", "grape", "plum"
+      { "symbolId": "cherry", "weight": 10 },
+      { "symbolId": "lemon", "weight": 10 },
+      { "symbolId": "orange", "weight": 10 },
+      { "symbolId": "plum", "weight": 10 },
+      { "symbolId": "grape", "weight": 10 },
+      { "symbolId": "diamond", "weight": 2 },
+      { "symbolId": "star", "weight": 2 },
+      { "symbolId": "wild", "weight": 1 },
+      { "symbolId": "scatter", "weight": 1 }
     ],
     [
-      "grape", "cherry", "lemon", "orange", "plum", "grape", "cherry", "lemon", "orange", "plum",
-      "grape", "cherry", "lemon", "orange", "diamond", "grape", "cherry", "lemon", "orange", "plum",
-      "grape", "cherry", "lemon", "orange", "plum", "grape", "scatter", "cherry", "lemon", "orange",
-      "star", "plum", "grape", "cherry", "lemon", "orange", "plum", "grape", "cherry", "lemon",
-      "orange", "plum", "wild", "grape", "cherry", "lemon", "diamond", "star", "orange", "plum"
+      { "symbolId": "cherry", "weight": 10 },
+      { "symbolId": "lemon", "weight": 10 },
+      { "symbolId": "orange", "weight": 10 },
+      { "symbolId": "plum", "weight": 10 },
+      { "symbolId": "grape", "weight": 10 },
+      { "symbolId": "diamond", "weight": 2 },
+      { "symbolId": "star", "weight": 2 },
+      { "symbolId": "wild", "weight": 1 },
+      { "symbolId": "scatter", "weight": 1 }
     ]
   ],
   "paylines": [
@@ -63,15 +83,15 @@
     { "symbolId": "lemon", "count": 3, "multiplier": 1 },
     { "symbolId": "lemon", "count": 5, "multiplier": 12 },
     { "symbolId": "orange", "count": 3, "multiplier": 2 },
-    { "symbolId": "orange", "count": 5, "multiplier": 18 },
+    { "symbolId": "orange", "count": 5, "multiplier": 19 },
     { "symbolId": "plum", "count": 3, "multiplier": 2 },
-    { "symbolId": "plum", "count": 5, "multiplier": 18 },
+    { "symbolId": "plum", "count": 5, "multiplier": 19 },
     { "symbolId": "grape", "count": 3, "multiplier": 3 },
-    { "symbolId": "grape", "count": 5, "multiplier": 28 },
+    { "symbolId": "grape", "count": 5, "multiplier": 32 },
     { "symbolId": "diamond", "count": 3, "multiplier": 5 },
-    { "symbolId": "diamond", "count": 5, "multiplier": 40 },
+    { "symbolId": "diamond", "count": 5, "multiplier": 46 },
     { "symbolId": "star", "count": 3, "multiplier": 4 },
-    { "symbolId": "star", "count": 5, "multiplier": 28 }
+    { "symbolId": "star", "count": 5, "multiplier": 32 }
   ],
   "scatterRules": [
     { "symbolId": "scatter", "count": 3, "multiplier": 2, "freeSpins": 8 },

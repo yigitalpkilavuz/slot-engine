@@ -11,9 +11,9 @@ const VALID_CONFIG = {
     { id: "bar", name: "Bar" },
   ],
   reels: [
-    ["cherry", "bar", "cherry"],
-    ["bar", "cherry", "bar"],
-    ["cherry", "bar", "cherry"],
+    [{ symbolId: "cherry", weight: 3 }, { symbolId: "bar", weight: 2 }],
+    [{ symbolId: "cherry", weight: 2 }, { symbolId: "bar", weight: 3 }],
+    [{ symbolId: "cherry", weight: 3 }, { symbolId: "bar", weight: 2 }],
   ],
   paylines: [[1, 1, 1]],
   payouts: [{ symbolId: "cherry", count: 3, multiplier: 10 }],
@@ -63,7 +63,11 @@ describe("validateGameConfig", () => {
   });
 
   it("rejects reel strips referencing unknown symbols", () => {
-    const reels = [["cherry", "diamond", "bar"], ["bar"], ["cherry"]];
+    const reels = [
+      [{ symbolId: "cherry", weight: 1 }, { symbolId: "diamond", weight: 1 }],
+      [{ symbolId: "bar", weight: 1 }],
+      [{ symbolId: "cherry", weight: 1 }],
+    ];
     expect(() => validateGameConfig(configWith({ reels }))).toThrow("unknown symbol 'diamond'");
   });
 
@@ -108,9 +112,9 @@ describe("validateGameConfig", () => {
       { id: "wild", name: "Wild", wild: true },
     ];
     const reels = [
-      ["cherry", "wild", "cherry"],
-      ["wild", "cherry", "cherry"],
-      ["cherry", "cherry", "wild"],
+      [{ symbolId: "cherry", weight: 3 }, { symbolId: "wild", weight: 1 }],
+      [{ symbolId: "cherry", weight: 3 }, { symbolId: "wild", weight: 1 }],
+      [{ symbolId: "cherry", weight: 3 }, { symbolId: "wild", weight: 1 }],
     ];
     const result = validateGameConfig(
       configWith({ symbols, reels, payouts: [{ symbolId: "cherry", count: 3, multiplier: 10 }] }),
@@ -123,7 +127,11 @@ describe("validateGameConfig", () => {
       { id: "cherry", name: "Cherry" },
       { id: "wild", name: "Wild", wild: true },
     ];
-    const reels = [["cherry", "wild", "cherry"], ["cherry"], ["cherry"]];
+    const reels = [
+      [{ symbolId: "cherry", weight: 2 }, { symbolId: "wild", weight: 1 }],
+      [{ symbolId: "cherry", weight: 1 }],
+      [{ symbolId: "cherry", weight: 1 }],
+    ];
     const payouts = [{ symbolId: "wild", count: 3, multiplier: 10 }];
     expect(() => validateGameConfig(configWith({ symbols, reels, payouts }))).toThrow(
       "wild symbol",
@@ -141,9 +149,9 @@ describe("validateGameConfig", () => {
       { id: "scatter", name: "Scatter", scatter: true },
     ];
     const reels = [
-      ["cherry", "scatter", "cherry"],
-      ["cherry", "cherry", "scatter"],
-      ["scatter", "cherry", "cherry"],
+      [{ symbolId: "cherry", weight: 3 }, { symbolId: "scatter", weight: 1 }],
+      [{ symbolId: "cherry", weight: 3 }, { symbolId: "scatter", weight: 1 }],
+      [{ symbolId: "cherry", weight: 3 }, { symbolId: "scatter", weight: 1 }],
     ];
     const scatterRules = [
       { symbolId: "scatter", count: 3, multiplier: 5, freeSpins: 10 },
@@ -172,7 +180,11 @@ describe("validateGameConfig", () => {
       { id: "cherry", name: "Cherry" },
       { id: "scatter", name: "Scatter", scatter: true },
     ];
-    const reels = [["cherry", "scatter"], ["cherry", "scatter"], ["cherry", "scatter"]];
+    const reels = [
+      [{ symbolId: "cherry", weight: 2 }, { symbolId: "scatter", weight: 1 }],
+      [{ symbolId: "cherry", weight: 2 }, { symbolId: "scatter", weight: 1 }],
+      [{ symbolId: "cherry", weight: 2 }, { symbolId: "scatter", weight: 1 }],
+    ];
     const payouts = [{ symbolId: "scatter", count: 3, multiplier: 10 }];
     expect(() => validateGameConfig(configWith({ symbols, reels, payouts }))).toThrow(
       "scatter symbol",
@@ -184,7 +196,11 @@ describe("validateGameConfig", () => {
       { id: "cherry", name: "Cherry" },
       { id: "scatter", name: "Scatter", scatter: true },
     ];
-    const reels = [["cherry", "scatter"], ["cherry", "scatter"], ["cherry", "scatter"]];
+    const reels = [
+      [{ symbolId: "cherry", weight: 2 }, { symbolId: "scatter", weight: 1 }],
+      [{ symbolId: "cherry", weight: 2 }, { symbolId: "scatter", weight: 1 }],
+      [{ symbolId: "cherry", weight: 2 }, { symbolId: "scatter", weight: 1 }],
+    ];
     const scatterRules = [{ symbolId: "cherry", count: 3, multiplier: 5, freeSpins: 0 }];
     expect(() => validateGameConfig(configWith({ symbols, reels, scatterRules }))).toThrow(
       "non-scatter symbol",
@@ -201,7 +217,11 @@ describe("validateGameConfig", () => {
       { id: "cherry", name: "Cherry" },
       { id: "wild", name: "Wild", wild: true, wildMultiplier: NaN },
     ];
-    const reels = [["cherry", "wild"], ["cherry", "wild"], ["cherry", "wild"]];
+    const reels = [
+      [{ symbolId: "cherry", weight: 2 }, { symbolId: "wild", weight: 1 }],
+      [{ symbolId: "cherry", weight: 2 }, { symbolId: "wild", weight: 1 }],
+      [{ symbolId: "cherry", weight: 2 }, { symbolId: "wild", weight: 1 }],
+    ];
     expect(() => validateGameConfig(configWith({ symbols, reels }))).toThrow(
       "finite positive number",
     );
@@ -212,7 +232,11 @@ describe("validateGameConfig", () => {
       { id: "cherry", name: "Cherry" },
       { id: "wild", name: "Wild", wild: true, wildMultiplier: Infinity },
     ];
-    const reels = [["cherry", "wild"], ["cherry", "wild"], ["cherry", "wild"]];
+    const reels = [
+      [{ symbolId: "cherry", weight: 2 }, { symbolId: "wild", weight: 1 }],
+      [{ symbolId: "cherry", weight: 2 }, { symbolId: "wild", weight: 1 }],
+      [{ symbolId: "cherry", weight: 2 }, { symbolId: "wild", weight: 1 }],
+    ];
     expect(() => validateGameConfig(configWith({ symbols, reels }))).toThrow(
       "finite positive number",
     );
@@ -223,7 +247,11 @@ describe("validateGameConfig", () => {
       { id: "cherry", name: "Cherry" },
       { id: "wild", name: "Wild", wild: true, wildMultiplier: 2 },
     ];
-    const reels = [["cherry", "wild"], ["cherry", "wild"], ["cherry", "wild"]];
+    const reels = [
+      [{ symbolId: "cherry", weight: 2 }, { symbolId: "wild", weight: 1 }],
+      [{ symbolId: "cherry", weight: 2 }, { symbolId: "wild", weight: 1 }],
+      [{ symbolId: "cherry", weight: 2 }, { symbolId: "wild", weight: 1 }],
+    ];
     const result = validateGameConfig(configWith({ symbols, reels }));
     expect(result.symbols[1]!.wildMultiplier).toBe(2);
   });
@@ -249,9 +277,9 @@ describe("validateGameConfig", () => {
       { id: "scatter", name: "Scatter", scatter: true },
     ],
     reels: [
-      ["cherry", "bar", "wild", "scatter"],
-      ["bar", "cherry", "wild", "scatter"],
-      ["cherry", "bar", "wild", "scatter"],
+      [{ symbolId: "cherry", weight: 3 }, { symbolId: "bar", weight: 2 }, { symbolId: "wild", weight: 1 }, { symbolId: "scatter", weight: 1 }],
+      [{ symbolId: "cherry", weight: 2 }, { symbolId: "bar", weight: 3 }, { symbolId: "wild", weight: 1 }, { symbolId: "scatter", weight: 1 }],
+      [{ symbolId: "cherry", weight: 3 }, { symbolId: "bar", weight: 2 }, { symbolId: "wild", weight: 1 }, { symbolId: "scatter", weight: 1 }],
     ],
     scatterRules: [
       { symbolId: "scatter", count: 3, multiplier: 5, freeSpins: 10 },
@@ -341,9 +369,9 @@ describe("validateGameConfig", () => {
         { id: "scatter", name: "Scatter", scatter: true },
       ],
       reels: [
-        ["cherry", "bar", "scatter"],
-        ["bar", "cherry", "scatter"],
-        ["cherry", "bar", "scatter"],
+        [{ symbolId: "cherry", weight: 2 }, { symbolId: "bar", weight: 2 }, { symbolId: "scatter", weight: 1 }],
+        [{ symbolId: "cherry", weight: 2 }, { symbolId: "bar", weight: 2 }, { symbolId: "scatter", weight: 1 }],
+        [{ symbolId: "cherry", weight: 2 }, { symbolId: "bar", weight: 2 }, { symbolId: "scatter", weight: 1 }],
       ],
       freeSpinModifiers: [{ type: "stickyWilds" }],
     };

@@ -31,6 +31,7 @@ import { updateBonusBuyButton } from "../ui/bonus-buy-button.js";
 import {
   FONT_DISPLAY, FONT_BODY,
   GOLD, SILVER,
+  registerGameSymbols,
 } from "../ui/design-tokens.js";
 
 const MIN_SPIN_DURATION_MS = 600;
@@ -61,6 +62,8 @@ export function buildGameScene(
   if (!config) {
     throw new Error("GameState must have a game config before building the scene");
   }
+
+  registerGameSymbols(config.symbols);
 
   const scene = new Container();
 

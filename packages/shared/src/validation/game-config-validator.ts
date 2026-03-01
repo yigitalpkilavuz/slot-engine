@@ -5,10 +5,6 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-function isStringArray(value: unknown): value is string[] {
-  return Array.isArray(value) && value.every((item) => typeof item === "string");
-}
-
 function isNumberArray(value: unknown): value is number[] {
   return Array.isArray(value) && value.every((item) => typeof item === "number");
 }
@@ -99,13 +95,32 @@ export function validateGameConfig(data: unknown): GameConfig {
     errors.push("'reels' must be a non-empty array");
   } else {
     for (const [i, reel] of data["reels"].entries()) {
-      if (!isStringArray(reel) || reel.length === 0) {
-        errors.push(`reels[${String(i)}] must be a non-empty array of symbol IDs`);
-      } else if (symbolIds.size > 0) {
-        for (const symbolId of reel) {
-          if (!symbolIds.has(symbolId)) {
-            errors.push(`reels[${String(i)}] references unknown symbol '${symbolId}'`);
-            break;
+      if (!Array.isArray(reel) || reel.length === 0) {
+        errors.push(`reels[${String(i)}] must be a non-empty array of weighted symbols`);
+      } else {
+        const reelSymbolIds = new Set<string>();
+        for (const [j, entry] of (reel as unknown[]).entries()) {
+          if (!isRecord(entry)) {
+            errors.push(`reels[${String(i)}][${String(j)}] must be an object with symbolId and weight`);
+            continue;
+          }
+          if (typeof entry["symbolId"] !== "string" || entry["symbolId"].length === 0) {
+            errors.push(`reels[${String(i)}][${String(j)}].symbolId must be a non-empty string`);
+          } else {
+            if (symbolIds.size > 0 && !symbolIds.has(entry["symbolId"])) {
+              errors.push(`reels[${String(i)}][${String(j)}] references unknown symbol '${entry["symbolId"]}'`);
+            }
+            if (reelSymbolIds.has(entry["symbolId"])) {
+              errors.push(`reels[${String(i)}] has duplicate symbolId '${entry["symbolId"]}'`);
+            }
+            reelSymbolIds.add(entry["symbolId"]);
+          }
+          if (
+            typeof entry["weight"] !== "number" ||
+            !Number.isInteger(entry["weight"]) ||
+            entry["weight"] < 1
+          ) {
+            errors.push(`reels[${String(i)}][${String(j)}].weight must be a positive integer`);
           }
         }
       }

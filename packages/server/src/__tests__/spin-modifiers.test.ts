@@ -25,9 +25,9 @@ const BASE_CONFIG: GameConfig = {
     { id: "scatter", name: "Scatter", scatter: true },
   ],
   reels: [
-    ["cherry", "bar", "wild", "scatter", "cherry", "bar"],
-    ["bar", "cherry", "wild", "scatter", "bar", "cherry"],
-    ["cherry", "bar", "wild", "scatter", "cherry", "bar"],
+    [{ symbolId: "cherry", weight: 2 }, { symbolId: "bar", weight: 2 }, { symbolId: "wild", weight: 1 }, { symbolId: "scatter", weight: 1 }],
+    [{ symbolId: "cherry", weight: 2 }, { symbolId: "bar", weight: 2 }, { symbolId: "wild", weight: 1 }, { symbolId: "scatter", weight: 1 }],
+    [{ symbolId: "cherry", weight: 2 }, { symbolId: "bar", weight: 2 }, { symbolId: "wild", weight: 1 }, { symbolId: "scatter", weight: 1 }],
   ],
   paylines: [[0, 0, 0], [1, 1, 1], [2, 2, 2]],
   payouts: [

@@ -1,5 +1,6 @@
-import type { CascadeStep, Payline, PayoutRule, SymbolDefinition, Win } from "@slot-engine/shared";
+import type { CascadeStep, Payline, PayoutRule, ReelStrip, SymbolDefinition, Win } from "@slot-engine/shared";
 import type { RandomNumberGenerator } from "./rng.js";
+import { selectWeightedSymbol } from "./reel-spinner.js";
 import { evaluateWins } from "./win-evaluator.js";
 
 const MAX_CASCADE_ITERATIONS = 20;
@@ -18,7 +19,7 @@ export function evaluateCascades(
   bet: number,
   wildIds: ReadonlySet<string>,
   symbols: readonly SymbolDefinition[],
-  reels: readonly (readonly string[])[],
+  reels: readonly ReelStrip[],
   rng: RandomNumberGenerator,
 ): CascadeResult {
   const allWins: Win[] = [];
@@ -60,7 +61,7 @@ function collectWinningPositions(
 function cascadeGrid(
   grid: readonly (readonly string[])[],
   markedPositions: ReadonlySet<string>,
-  reels: readonly (readonly string[])[],
+  reels: readonly ReelStrip[],
   rng: RandomNumberGenerator,
 ): readonly (readonly string[])[] {
   const rows = grid.length;
@@ -83,12 +84,11 @@ function cascadeGrid(
       newGrid[rows - 1 - i]![col] = surviving[i]!;
     }
 
-    // Fill remaining top positions with random symbols from reel strip
+    // Fill remaining top positions with weighted random symbols
     const reel = reels[col]!;
     const emptyCount = rows - surviving.length;
     for (let i = 0; i < emptyCount; i++) {
-      const randomIndex = rng.nextInt(0, reel.length);
-      newGrid[i]![col] = reel[randomIndex]!;
+      newGrid[i]![col] = selectWeightedSymbol(reel, rng);
     }
   }
 

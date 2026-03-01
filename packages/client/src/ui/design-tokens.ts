@@ -85,6 +85,48 @@ export function easeOutQuint(t: number): number {
   return 1 - (1 - t) ** 5;
 }
 
+// ── Symbol Registry (data-driven from game config) ──
+
+const symbolNameRegistry = new Map<string, string>();
+
+export function registerGameSymbols(symbols: readonly { id: string; name: string }[]): void {
+  symbolNameRegistry.clear();
+  for (const sym of symbols) {
+    symbolNameRegistry.set(sym.id, sym.name);
+  }
+}
+
+export function getRegisteredSymbolName(symbolId: string): string | undefined {
+  return symbolNameRegistry.get(symbolId);
+}
+
+function djb2Hash(str: string): number {
+  let hash = 5381;
+  for (let i = 0; i < str.length; i++) {
+    hash = ((hash << 5) + hash + str.charCodeAt(i)) | 0;
+  }
+  return Math.abs(hash);
+}
+
+function hslToHex(h: number, s: number, l: number): number {
+  const c = (1 - Math.abs(2 * l - 1)) * s;
+  const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
+  const m = l - c / 2;
+  let r = 0, g = 0, b = 0;
+  if (h < 60) { r = c; g = x; }
+  else if (h < 120) { r = x; g = c; }
+  else if (h < 180) { g = c; b = x; }
+  else if (h < 240) { g = x; b = c; }
+  else if (h < 300) { r = x; b = c; }
+  else { r = c; b = x; }
+  return (Math.round((r + m) * 255) << 16) | (Math.round((g + m) * 255) << 8) | Math.round((b + m) * 255);
+}
+
+export function hashSymbolColor(symbolId: string): number {
+  const hue = djb2Hash(symbolId) % 360;
+  return hslToHex(hue, 0.55, 0.45);
+}
+
 // ── Symbol Colors (desaturated, refined) ────────────
 
 export const SYMBOL_COLORS: Record<string, number> = {

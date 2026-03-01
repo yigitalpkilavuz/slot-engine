@@ -15,39 +15,59 @@
   ],
   "reels": [
     [
-      "cherry", "lemon", "orange", "plum", "cherry", "lemon", "orange", "plum", "cherry", "bell",
-      "lemon", "orange", "cherry", "scatter", "plum", "cherry", "lemon", "bar", "orange", "plum",
-      "cherry", "lemon", "orange", "cherry", "bell", "lemon", "plum", "seven", "cherry", "orange",
-      "lemon", "plum", "cherry", "bar", "orange", "lemon", "bell", "cherry", "plum", "orange",
-      "lemon", "cherry", "wild", "plum", "bar", "orange", "lemon", "seven", "bell", "cherry"
+      { "symbolId": "cherry", "weight": 11 },
+      { "symbolId": "lemon", "weight": 10 },
+      { "symbolId": "orange", "weight": 10 },
+      { "symbolId": "plum", "weight": 10 },
+      { "symbolId": "bell", "weight": 4 },
+      { "symbolId": "bar", "weight": 3 },
+      { "symbolId": "seven", "weight": 2 },
+      { "symbolId": "wild", "weight": 1 },
+      { "symbolId": "scatter", "weight": 1 }
     ],
     [
-      "lemon", "cherry", "plum", "orange", "lemon", "cherry", "plum", "orange", "lemon", "bell",
-      "cherry", "plum", "lemon", "orange", "scatter", "lemon", "cherry", "bar", "plum", "orange",
-      "lemon", "cherry", "plum", "lemon", "bell", "cherry", "orange", "seven", "lemon", "plum",
-      "cherry", "orange", "lemon", "bar", "plum", "cherry", "bell", "lemon", "orange", "plum",
-      "cherry", "lemon", "wild", "orange", "bar", "plum", "cherry", "seven", "bell", "lemon"
+      { "symbolId": "cherry", "weight": 10 },
+      { "symbolId": "lemon", "weight": 11 },
+      { "symbolId": "orange", "weight": 10 },
+      { "symbolId": "plum", "weight": 10 },
+      { "symbolId": "bell", "weight": 4 },
+      { "symbolId": "bar", "weight": 3 },
+      { "symbolId": "seven", "weight": 2 },
+      { "symbolId": "wild", "weight": 1 },
+      { "symbolId": "scatter", "weight": 1 }
     ],
     [
-      "orange", "cherry", "lemon", "plum", "orange", "cherry", "lemon", "plum", "orange", "bell",
-      "cherry", "lemon", "plum", "orange", "scatter", "orange", "cherry", "bar", "lemon", "plum",
-      "orange", "cherry", "lemon", "orange", "bell", "cherry", "plum", "seven", "orange", "lemon",
-      "cherry", "plum", "orange", "bar", "lemon", "cherry", "bell", "plum", "lemon", "cherry",
-      "wild", "orange", "plum", "bar", "cherry", "lemon", "seven", "bell", "cherry", "lemon"
+      { "symbolId": "cherry", "weight": 10 },
+      { "symbolId": "lemon", "weight": 10 },
+      { "symbolId": "orange", "weight": 11 },
+      { "symbolId": "plum", "weight": 10 },
+      { "symbolId": "bell", "weight": 4 },
+      { "symbolId": "bar", "weight": 3 },
+      { "symbolId": "seven", "weight": 2 },
+      { "symbolId": "wild", "weight": 1 },
+      { "symbolId": "scatter", "weight": 1 }
     ],
     [
-      "plum", "lemon", "cherry", "orange", "plum", "lemon", "cherry", "orange", "plum", "bell",
-      "lemon", "cherry", "plum", "orange", "bar", "plum", "lemon", "scatter", "cherry", "orange",
-      "plum", "lemon", "cherry", "plum", "bell", "lemon", "orange", "seven", "plum", "cherry",
-      "lemon", "orange", "plum", "bar", "cherry", "lemon", "bell", "plum", "orange", "cherry",
-      "wild", "lemon", "orange", "bar", "cherry", "plum", "seven", "bell", "lemon", "cherry"
+      { "symbolId": "cherry", "weight": 10 },
+      { "symbolId": "lemon", "weight": 10 },
+      { "symbolId": "orange", "weight": 10 },
+      { "symbolId": "plum", "weight": 11 },
+      { "symbolId": "bell", "weight": 4 },
+      { "symbolId": "bar", "weight": 3 },
+      { "symbolId": "seven", "weight": 2 },
+      { "symbolId": "wild", "weight": 1 },
+      { "symbolId": "scatter", "weight": 1 }
     ],
     [
-      "cherry", "orange", "lemon", "plum", "cherry", "orange", "lemon", "plum", "cherry", "bell",
-      "orange", "lemon", "cherry", "plum", "bar", "cherry", "orange", "lemon", "scatter", "plum",
-      "cherry", "orange", "lemon", "cherry", "bell", "orange", "plum", "seven", "cherry", "lemon",
-      "orange", "plum", "cherry", "bar", "lemon", "orange", "bell", "cherry", "plum", "lemon",
-      "wild", "orange", "plum", "bar", "cherry", "lemon", "seven", "bell", "orange", "lemon"
+      { "symbolId": "cherry", "weight": 11 },
+      { "symbolId": "lemon", "weight": 10 },
+      { "symbolId": "orange", "weight": 10 },
+      { "symbolId": "plum", "weight": 10 },
+      { "symbolId": "bell", "weight": 4 },
+      { "symbolId": "bar", "weight": 3 },
+      { "symbolId": "seven", "weight": 2 },
+      { "symbolId": "wild", "weight": 1 },
+      { "symbolId": "scatter", "weight": 1 }
     ]
   ],
   "paylines": [
@@ -60,25 +80,25 @@
   "payouts": [
     { "symbolId": "cherry", "count": 3, "multiplier": 3 },
     { "symbolId": "cherry", "count": 4, "multiplier": 5 },
-    { "symbolId": "cherry", "count": 5, "multiplier": 15 },
+    { "symbolId": "cherry", "count": 5, "multiplier": 13 },
     { "symbolId": "lemon", "count": 3, "multiplier": 3 },
     { "symbolId": "lemon", "count": 4, "multiplier": 5 },
-    { "symbolId": "lemon", "count": 5, "multiplier": 15 },
+    { "symbolId": "lemon", "count": 5, "multiplier": 13 },
     { "symbolId": "orange", "count": 3, "multiplier": 3 },
     { "symbolId": "orange", "count": 4, "multiplier": 8 },
-    { "symbolId": "orange", "count": 5, "multiplier": 25 },
+    { "symbolId": "orange", "count": 5, "multiplier": 23 },
     { "symbolId": "plum", "count": 3, "multiplier": 3 },
     { "symbolId": "plum", "count": 4, "multiplier": 8 },
-    { "symbolId": "plum", "count": 5, "multiplier": 25 },
+    { "symbolId": "plum", "count": 5, "multiplier": 23 },
     { "symbolId": "bell", "count": 3, "multiplier": 5 },
-    { "symbolId": "bell", "count": 4, "multiplier": 15 },
-    { "symbolId": "bell", "count": 5, "multiplier": 50 },
+    { "symbolId": "bell", "count": 4, "multiplier": 14 },
+    { "symbolId": "bell", "count": 5, "multiplier": 46 },
     { "symbolId": "bar", "count": 3, "multiplier": 8 },
-    { "symbolId": "bar", "count": 4, "multiplier": 25 },
-    { "symbolId": "bar", "count": 5, "multiplier": 75 },
-    { "symbolId": "seven", "count": 3, "multiplier": 15 },
-    { "symbolId": "seven", "count": 4, "multiplier": 50 },
-    { "symbolId": "seven", "count": 5, "multiplier": 215 }
+    { "symbolId": "bar", "count": 4, "multiplier": 24 },
+    { "symbolId": "bar", "count": 5, "multiplier": 68 },
+    { "symbolId": "seven", "count": 3, "multiplier": 14 },
+    { "symbolId": "seven", "count": 4, "multiplier": 47 },
+    { "symbolId": "seven", "count": 5, "multiplier": 200 }
   ],
   "scatterRules": [
     { "symbolId": "scatter", "count": 3, "multiplier": 3, "freeSpins": 8 },

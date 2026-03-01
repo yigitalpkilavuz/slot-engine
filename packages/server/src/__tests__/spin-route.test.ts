@@ -15,9 +15,9 @@ const TEST_CONFIG: GameConfig = {
     { id: "bar", name: "Bar" },
   ],
   reels: [
-    ["cherry", "bar", "cherry"],
-    ["bar", "cherry", "bar"],
-    ["cherry", "bar", "cherry"],
+    [{ symbolId: "cherry", weight: 3 }, { symbolId: "bar", weight: 2 }],
+    [{ symbolId: "cherry", weight: 2 }, { symbolId: "bar", weight: 3 }],
+    [{ symbolId: "cherry", weight: 3 }, { symbolId: "bar", weight: 2 }],
   ],
   paylines: [[1, 1, 1]],
   payouts: [{ symbolId: "cherry", count: 3, multiplier: 10 }],

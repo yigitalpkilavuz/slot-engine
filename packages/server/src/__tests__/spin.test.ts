@@ -1,7 +1,14 @@
 import { describe, it, expect } from "vitest";
-import type { GameConfig } from "@slot-engine/shared";
+import type { GameConfig, ReelStrip } from "@slot-engine/shared";
 import { spin } from "../spin.js";
 import { FixedRng } from "./helpers.js";
+
+// Weight-1 reels: totalWeight=3, roll 0→cherry, 1→bar, 2→seven
+const W_REELS: readonly ReelStrip[] = [
+  [{ symbolId: "cherry", weight: 1 }, { symbolId: "bar", weight: 1 }, { symbolId: "seven", weight: 1 }],
+  [{ symbolId: "cherry", weight: 1 }, { symbolId: "bar", weight: 1 }, { symbolId: "seven", weight: 1 }],
+  [{ symbolId: "cherry", weight: 1 }, { symbolId: "bar", weight: 1 }, { symbolId: "seven", weight: 1 }],
+];
 
 const TEST_CONFIG: GameConfig = {
   id: "test-game",
@@ -12,11 +19,7 @@ const TEST_CONFIG: GameConfig = {
     { id: "bar", name: "Bar" },
     { id: "seven", name: "Seven" },
   ],
-  reels: [
-    ["cherry", "bar", "seven", "cherry", "bar"],
-    ["bar", "seven", "cherry", "bar", "seven"],
-    ["seven", "cherry", "bar", "seven", "cherry"],
-  ],
+  reels: W_REELS,
   paylines: [
     [1, 1, 1],
     [0, 0, 0],
@@ -33,7 +36,8 @@ const TEST_CONFIG: GameConfig = {
 
 describe("spin", () => {
   it("returns a valid SpinResult", () => {
-    const rng = new FixedRng([0, 0, 0]);
+    // 9 values for 3×3 grid
+    const rng = new FixedRng([0, 0, 0, 0, 0, 0, 0, 0, 0]);
     const result = spin(TEST_CONFIG, 10, rng);
 
     expect(result.grid).toHaveLength(3);
@@ -42,13 +46,13 @@ describe("spin", () => {
   });
 
   it("throws on invalid bet amount", () => {
-    const rng = new FixedRng([0, 0, 0]);
+    const rng = new FixedRng([0, 0, 0, 0, 0, 0, 0, 0, 0]);
 
     expect(() => spin(TEST_CONFIG, 999, rng)).toThrow("Invalid bet amount");
   });
 
   it("throws on non-integer bet (floating point guard)", () => {
-    const rng = new FixedRng([0, 0, 0]);
+    const rng = new FixedRng([0, 0, 0, 0, 0, 0, 0, 0, 0]);
 
     expect(() => spin(TEST_CONFIG, 5.5, rng)).toThrow("positive integer");
     expect(() => spin(TEST_CONFIG, 0, rng)).toThrow("positive integer");
@@ -56,22 +60,23 @@ describe("spin", () => {
   });
 
   it("calculates correct total payout", () => {
-    const rng = new FixedRng([0, 2, 1]);
+    // Grid: row0=cherry×3, row1=bar×3, row2=seven×3
+    // All 3 paylines win
+    const rng = new FixedRng([0, 0, 0, 1, 1, 1, 2, 2, 2]);
     const result = spin(TEST_CONFIG, 10, rng);
 
-    // Stop positions [0,2,1] produces:
-    // row 0: cherry, cherry, cherry → cherry×3 = 10 * 10 = 100
-    // row 1: bar,    bar,    bar    → bar×3    = 10 * 20 = 200
-    // row 2: seven,  seven,  seven  → seven×3  = 10 * 50 = 500
+    // payline [1,1,1] → bar×3 = 200
+    // payline [0,0,0] → cherry×3 = 100
+    // payline [2,2,2] → seven×3 = 500
     expect(result.wins.length).toBe(3);
     expect(result.totalPayout).toBe(800);
   });
 
   it("returns zero payout when no wins", () => {
-    const rng = new FixedRng([0, 0, 0]);
+    // Mixed grid: row0=[cherry,bar,seven], row1=[bar,seven,cherry], row2=[seven,cherry,bar]
+    const rng = new FixedRng([0, 1, 2, 1, 2, 0, 2, 0, 1]);
     const result = spin(TEST_CONFIG, 10, rng);
 
-    // Stop positions [0,0,0] produces mixed grid, no 3-of-a-kind on any payline
     expect(result.totalPayout).toBe(0);
   });
 });
@@ -86,9 +91,9 @@ const WILD_CONFIG: GameConfig = {
     { id: "wild", name: "Wild", wild: true },
   ],
   reels: [
-    ["cherry", "bar", "wild"],
-    ["wild", "cherry", "bar"],
-    ["cherry", "bar", "wild"],
+    [{ symbolId: "cherry", weight: 1 }, { symbolId: "bar", weight: 1 }, { symbolId: "wild", weight: 1 }],
+    [{ symbolId: "cherry", weight: 1 }, { symbolId: "bar", weight: 1 }, { symbolId: "wild", weight: 1 }],
+    [{ symbolId: "cherry", weight: 1 }, { symbolId: "bar", weight: 1 }, { symbolId: "wild", weight: 1 }],
   ],
   paylines: [[0, 0, 0]],
   payouts: [
@@ -101,9 +106,8 @@ const WILD_CONFIG: GameConfig = {
 
 describe("spin with wild symbols", () => {
   it("wild substitutes in win evaluation", () => {
-    // Stop positions [0, 0, 0] produces:
-    // row 0: cherry, wild, cherry → cherry×3 with wild sub = 10*10 = 100
-    const rng = new FixedRng([0, 0, 0]);
+    // row 0: cherry, wild, cherry → cherry×3 with wild sub = 100
+    const rng = new FixedRng([0, 2, 0, 1, 1, 1, 2, 0, 2]);
     const result = spin(WILD_CONFIG, 10, rng);
 
     expect(result.wins).toHaveLength(1);
@@ -123,9 +127,9 @@ const SCATTER_CONFIG: GameConfig = {
     { id: "scatter", name: "Scatter", scatter: true },
   ],
   reels: [
-    ["cherry", "bar", "cherry", "bar", "scatter"],
-    ["bar", "cherry", "bar", "cherry", "scatter"],
-    ["cherry", "bar", "cherry", "bar", "scatter"],
+    [{ symbolId: "cherry", weight: 2 }, { symbolId: "bar", weight: 2 }, { symbolId: "scatter", weight: 1 }],
+    [{ symbolId: "cherry", weight: 2 }, { symbolId: "bar", weight: 2 }, { symbolId: "scatter", weight: 1 }],
+    [{ symbolId: "cherry", weight: 2 }, { symbolId: "bar", weight: 2 }, { symbolId: "scatter", weight: 1 }],
   ],
   paylines: [[0, 0, 0]],
   payouts: [
@@ -140,22 +144,17 @@ const SCATTER_CONFIG: GameConfig = {
 
 describe("spin with scatter symbols", () => {
   it("returns freeSpinsAwarded=0 when no scatters land", () => {
-    // Stop positions [0, 0, 0]:
-    // Reel 0: cherry, bar, cherry  |  Reel 1: bar, cherry, bar  |  Reel 2: cherry, bar, cherry
-    // Grid: row0=[cherry, bar, cherry], row1=[bar, cherry, bar], row2=[cherry, bar, cherry]
-    // 0 scatters on grid
-    const rng = new FixedRng([0, 0, 0]);
+    // totalWeight=5, cherry:0-1, bar:2-3, scatter:4
+    // All values < 4 → no scatter
+    const rng = new FixedRng([0, 0, 0, 1, 1, 1, 2, 2, 2]);
     const result = spin(SCATTER_CONFIG, 10, rng);
 
     expect(result.freeSpinsAwarded).toBe(0);
   });
 
   it("awards scatter win and free spins when enough scatters land", () => {
-    // Stop positions [2, 2, 2]:
-    // Reel 0: cherry, bar, scatter  |  Reel 1: bar, cherry, scatter  |  Reel 2: cherry, bar, scatter
-    // Grid: row0=[cherry, bar, cherry], row1=[bar, cherry, bar], row2=[scatter, scatter, scatter]
-    // 3 scatters on grid
-    const rng = new FixedRng([2, 2, 2]);
+    // row2: scatter×3 (roll=4 → scatter)
+    const rng = new FixedRng([0, 0, 0, 1, 1, 1, 4, 4, 4]);
     const result = spin(SCATTER_CONFIG, 10, rng);
 
     expect(result.freeSpinsAwarded).toBe(10);
@@ -165,7 +164,7 @@ describe("spin with scatter symbols", () => {
   });
 
   it("works with config that has no scatterRules (backward compat)", () => {
-    const rng = new FixedRng([0, 0, 0]);
+    const rng = new FixedRng([0, 0, 0, 0, 0, 0, 0, 0, 0]);
     const result = spin(TEST_CONFIG, 10, rng);
 
     expect(result.freeSpinsAwarded).toBe(0);
@@ -182,9 +181,9 @@ const MULTIPLIER_WILD_CONFIG: GameConfig = {
     { id: "wild", name: "Wild", wild: true, wildMultiplier: 2 },
   ],
   reels: [
-    ["cherry", "bar", "wild"],
-    ["wild", "cherry", "bar"],
-    ["cherry", "bar", "wild"],
+    [{ symbolId: "cherry", weight: 1 }, { symbolId: "bar", weight: 1 }, { symbolId: "wild", weight: 1 }],
+    [{ symbolId: "cherry", weight: 1 }, { symbolId: "bar", weight: 1 }, { symbolId: "wild", weight: 1 }],
+    [{ symbolId: "cherry", weight: 1 }, { symbolId: "bar", weight: 1 }, { symbolId: "wild", weight: 1 }],
   ],
   paylines: [[0, 0, 0]],
   payouts: [
@@ -197,9 +196,8 @@ const MULTIPLIER_WILD_CONFIG: GameConfig = {
 
 describe("spin with multiplier wilds", () => {
   it("multiplier wild doubles payout in spin result", () => {
-    // Stop positions [0, 0, 0] produces:
     // row 0: cherry, wild, cherry → cherry×3 with 2x wild = 10*10*2 = 200
-    const rng = new FixedRng([0, 0, 0]);
+    const rng = new FixedRng([0, 2, 0, 1, 1, 1, 2, 0, 2]);
     const result = spin(MULTIPLIER_WILD_CONFIG, 10, rng);
 
     expect(result.wins).toHaveLength(1);
@@ -221,9 +219,9 @@ const EXPANDING_WILD_CONFIG: GameConfig = {
     { id: "wild", name: "Wild", wild: true, expandingWild: true },
   ],
   reels: [
-    ["cherry", "bar", "seven"],
-    ["wild", "cherry", "bar"],
-    ["cherry", "bar", "seven"],
+    [{ symbolId: "cherry", weight: 1 }, { symbolId: "bar", weight: 1 }, { symbolId: "seven", weight: 1 }],
+    [{ symbolId: "cherry", weight: 1 }, { symbolId: "bar", weight: 1 }, { symbolId: "seven", weight: 1 }, { symbolId: "wild", weight: 1 }],
+    [{ symbolId: "cherry", weight: 1 }, { symbolId: "bar", weight: 1 }, { symbolId: "seven", weight: 1 }],
   ],
   paylines: [
     [0, 0, 0],
@@ -241,15 +239,16 @@ const EXPANDING_WILD_CONFIG: GameConfig = {
 
 describe("spin with expanding wilds", () => {
   it("expanding wild fills the entire column", () => {
-    // Stop positions [0, 0, 0] produces raw grid:
-    // row 0: cherry, wild,   cherry
-    // row 1: bar,    cherry, bar
-    // row 2: seven,  bar,    seven
-    // After expansion (column 1 all wild):
-    // row 0: cherry, wild, cherry → cherry×3 = 100
-    // row 1: bar,    wild, bar    → bar×3    = 200
-    // row 2: seven,  wild, seven  → seven×3  = 500
-    const rng = new FixedRng([0, 0, 0]);
+    // Reel 0,2: totalWeight=3 (0→cherry, 1→bar, 2→seven)
+    // Reel 1: totalWeight=4 (0→cherry, 1→bar, 2→seven, 3→wild)
+    // row 0: cherry(0), wild(3), cherry(0)
+    // row 1: bar(1), cherry(0), bar(1)
+    // row 2: seven(2), bar(1), seven(2)
+    // After expansion (col 1 all wild):
+    // cherry, wild, cherry → cherry×3 = 100
+    // bar, wild, bar → bar×3 = 200
+    // seven, wild, seven → seven×3 = 500
+    const rng = new FixedRng([0, 3, 0, 1, 0, 1, 2, 1, 2]);
     const result = spin(EXPANDING_WILD_CONFIG, 10, rng);
 
     expect(result.grid[0]![1]).toBe("wild");
@@ -261,7 +260,7 @@ describe("spin with expanding wilds", () => {
   });
 
   it("provides originalGrid when expansion occurs", () => {
-    const rng = new FixedRng([0, 0, 0]);
+    const rng = new FixedRng([0, 3, 0, 1, 0, 1, 2, 1, 2]);
     const result = spin(EXPANDING_WILD_CONFIG, 10, rng);
 
     expect(result.originalGrid).toBeDefined();
@@ -270,7 +269,7 @@ describe("spin with expanding wilds", () => {
   });
 
   it("does not set originalGrid when no expansion occurs", () => {
-    const rng = new FixedRng([0, 0, 0]);
+    const rng = new FixedRng([0, 0, 0, 0, 0, 0, 0, 0, 0]);
     const result = spin(TEST_CONFIG, 10, rng);
 
     expect(result.originalGrid).toBeUndefined();
@@ -286,11 +285,7 @@ const CASCADE_CONFIG: GameConfig = {
     { id: "bar", name: "Bar" },
     { id: "seven", name: "Seven" },
   ],
-  reels: [
-    ["cherry", "bar", "seven"],
-    ["cherry", "bar", "seven"],
-    ["cherry", "bar", "seven"],
-  ],
+  reels: W_REELS,
   paylines: [[0, 0, 0]],
   payouts: [
     { symbolId: "cherry", count: 3, multiplier: 10 },
@@ -304,9 +299,10 @@ const CASCADE_CONFIG: GameConfig = {
 
 describe("spin with cascading wins", () => {
   it("cascades: single win then no more wins", () => {
-    // Stop [0,0,0] → row0: cherry×3 → win (100)
-    // Cascade fill [0, 1, 2] → row0: cherry, bar, seven → no match
-    const rng = new FixedRng([0, 0, 0, 0, 1, 2]);
+    // Spin: row0=cherry×3, row1=bar×3, row2=seven×3
+    // Payline [0,0,0] → cherry×3 = 100
+    // Cascade fill row 0: cherry,bar,seven → no match
+    const rng = new FixedRng([0, 0, 0, 1, 1, 1, 2, 2, 2, 0, 1, 2]);
     const result = spin(CASCADE_CONFIG, 10, rng);
 
     expect(result.totalPayout).toBe(100);
@@ -315,10 +311,10 @@ describe("spin with cascading wins", () => {
   });
 
   it("cascades: chain of 2 wins with accumulated payout", () => {
-    // Stop [0,0,0] → row0: cherry×3 → win (100)
-    // 1st cascade fill [1,1,1] → row0: bar×3 → win (200)
-    // 2nd cascade fill [0,1,2] → row0: cherry, bar, seven → no match
-    const rng = new FixedRng([0, 0, 0, 1, 1, 1, 0, 1, 2]);
+    // Spin: row0=cherry×3, row1=bar×3, row2=seven×3
+    // 1st cascade fill: bar×3 → bar×3 = 200
+    // 2nd cascade fill: cherry,bar,seven → no win
+    const rng = new FixedRng([0, 0, 0, 1, 1, 1, 2, 2, 2, 1, 1, 1, 0, 1, 2]);
     const result = spin(CASCADE_CONFIG, 10, rng);
 
     expect(result.totalPayout).toBe(300);
@@ -326,7 +322,7 @@ describe("spin with cascading wins", () => {
   });
 
   it("returns final grid after all cascades", () => {
-    const rng = new FixedRng([0, 0, 0, 0, 1, 2]);
+    const rng = new FixedRng([0, 0, 0, 1, 1, 1, 2, 2, 2, 0, 1, 2]);
     const result = spin(CASCADE_CONFIG, 10, rng);
 
     // Final grid row 0 = filled symbols (cherry, bar, seven)
@@ -337,7 +333,7 @@ describe("spin with cascading wins", () => {
   });
 
   it("non-cascading config has no cascadeSteps", () => {
-    const rng = new FixedRng([0, 0, 0]);
+    const rng = new FixedRng([0, 0, 0, 0, 0, 0, 0, 0, 0]);
     const result = spin(TEST_CONFIG, 10, rng);
 
     expect(result.cascadeSteps).toBeUndefined();
@@ -355,9 +351,9 @@ const EXPANDING_CASCADE_CONFIG: GameConfig = {
     { id: "wild", name: "Wild", wild: true, expandingWild: true },
   ],
   reels: [
-    ["cherry", "bar", "seven"],
-    ["wild", "cherry", "bar"],
-    ["cherry", "bar", "seven"],
+    [{ symbolId: "cherry", weight: 1 }, { symbolId: "bar", weight: 1 }, { symbolId: "seven", weight: 1 }],
+    [{ symbolId: "cherry", weight: 1 }, { symbolId: "bar", weight: 1 }, { symbolId: "seven", weight: 1 }, { symbolId: "wild", weight: 1 }],
+    [{ symbolId: "cherry", weight: 1 }, { symbolId: "bar", weight: 1 }, { symbolId: "seven", weight: 1 }],
   ],
   paylines: [
     [0, 0, 0],
@@ -376,41 +372,14 @@ const EXPANDING_CASCADE_CONFIG: GameConfig = {
 
 describe("spin with expanding wilds + cascading", () => {
   it("returns both originalGrid and cascadeSteps", () => {
-    // Stop [0, 0, 0] → raw grid:
-    // row 0: cherry, wild,   cherry
-    // row 1: bar,    cherry, bar
-    // row 2: seven,  bar,    seven
-    // After expansion (col 1 all wild):
-    // row 0: cherry, wild, cherry → cherry×3 = 100
-    // row 1: bar,    wild, bar    → bar×3    = 200
-    // row 2: seven,  wild, seven  → seven×3  = 500
-    // All 3 paylines win → cascade removes all 9 positions
-    // Cascade fill needs 9 values (3 per column), reel 1 = ["wild","cherry","bar"]
-    // Fill with [0,1,2, 1,1,1, 0,1,2] → row0: cherry,cherry,cherry; row1: bar,cherry,bar; row2: seven,bar,seven
-    // Wait - reel 1 has wild at index 0 which could re-expand... but expanding wilds
-    // are only applied to the initial spin, not during cascades.
-    // So fill values for reel 1 use indices into ["wild","cherry","bar"]:
-    //   index 1 = cherry, index 1 = cherry, index 1 = cherry
-    // Fill: [0,1,0, 1,1,1, 0,1,2]
-    // row0: cherry(0), cherry(1), cherry(0) → cherry×3 = 100 (another cascade!)
-    // row1: bar(1), cherry(1), bar(1) → no match
-    // row2: seven(2), cherry(1), seven(2) → no match
-    // 2nd cascade fill: [0,1,2] → cherry, cherry, cherry → another cascade??
-    // Let me use simpler values that stop cascading after first cascade step
-
-    // Cascade fill: [0,1,2, 1,1,2, 0,1,2]
-    // row0: cherry, cherry, cherry → cherry×3 = 100, cascades again!
-    // This is hard to stop. Let me just verify the structure is correct.
-
-    // Use fill values that produce no further wins:
-    // col0 reel=["cherry","bar","seven"], col1 reel=["wild","cherry","bar"], col2 reel=["cherry","bar","seven"]
-    // Fill all 9 positions (3 per col): need no matching row
-    // col0: [0,1,2] → cherry,bar,seven; col1: [1,2,1] → cherry,bar,cherry; col2: [1,0,2] → bar,cherry,seven
-    // row0: cherry,cherry,bar → no match
-    // row1: bar,bar,cherry → no match
-    // row2: seven,cherry,seven → no match
-    // But FixedRng is consumed in order: 3 for col0, 3 for col1, 3 for col2
-    const rng = new FixedRng([0, 0, 0, 0, 1, 2, 1, 2, 1, 1, 0, 2]);
+    // Spin: row0=[cherry, wild, cherry], row1=[bar, cherry, bar], row2=[seven, bar, seven]
+    // After expansion: col 1 all wild → cherry×3(100) + bar×3(200) + seven×3(500) = 800
+    // Cascade: all 9 removed
+    // Fill col0: cherry,bar,seven; col1: bar,seven,cherry; col2: seven,cherry,bar → no wins
+    const rng = new FixedRng([
+      0, 3, 0, 1, 0, 1, 2, 1, 2,     // spin (9 values)
+      0, 1, 2, 1, 2, 0, 2, 0, 1,     // cascade fill (9 values, no wins)
+    ]);
     const result = spin(EXPANDING_CASCADE_CONFIG, 10, rng);
 
     // Both fields present
@@ -437,9 +406,9 @@ const MULTIPLIER_CASCADE_CONFIG: GameConfig = {
     { id: "wild", name: "Wild", wild: true, wildMultiplier: 2 },
   ],
   reels: [
-    ["cherry", "bar", "seven", "wild"],
-    ["cherry", "bar", "seven", "wild"],
-    ["cherry", "bar", "seven", "wild"],
+    [{ symbolId: "cherry", weight: 1 }, { symbolId: "bar", weight: 1 }, { symbolId: "seven", weight: 1 }, { symbolId: "wild", weight: 1 }],
+    [{ symbolId: "cherry", weight: 1 }, { symbolId: "bar", weight: 1 }, { symbolId: "seven", weight: 1 }, { symbolId: "wild", weight: 1 }],
+    [{ symbolId: "cherry", weight: 1 }, { symbolId: "bar", weight: 1 }, { symbolId: "seven", weight: 1 }, { symbolId: "wild", weight: 1 }],
   ],
   paylines: [[0, 0, 0]],
   payouts: [
@@ -453,14 +422,9 @@ const MULTIPLIER_CASCADE_CONFIG: GameConfig = {
 
 describe("spin with multiplier wilds + cascading", () => {
   it("multiplier wild applies in cascade then is removed", () => {
-    // Grid with wild in winning position:
     // row 0: cherry, wild, cherry → cherry×3 with 2x wild = 10*10*2 = 200
-    // row 1: bar, bar, bar
-    // row 2: seven, seven, seven
-    // Cascade removes (0,0), (0,1), (0,2), fills from reel strips
-    // Fill [0,1,2] → cherry, bar, seven → no match, no wild in new grid
-    const grid_stops = [0, 3, 0]; // reel0: cherry, reel1: wild, reel2: cherry at row 0
-    const rng = new FixedRng([...grid_stops, 0, 1, 2]);
+    // Cascade fill row 0: cherry,bar,seven → no match
+    const rng = new FixedRng([0, 3, 0, 1, 1, 1, 2, 2, 2, 0, 1, 2]);
     const result = spin(MULTIPLIER_CASCADE_CONFIG, 10, rng);
 
     expect(result.cascadeSteps).toHaveLength(1);

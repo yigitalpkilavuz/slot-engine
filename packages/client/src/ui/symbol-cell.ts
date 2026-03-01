@@ -10,6 +10,8 @@ import {
   BORDER_SUBTLE,
   SYMBOL_COLORS,
   SYMBOL_LABELS,
+  getRegisteredSymbolName,
+  hashSymbolColor,
   darkenColor,
   lightenColor,
 } from "./design-tokens.js";
@@ -17,7 +19,6 @@ import {
 export const CELL_WIDTH = 130;
 export const CELL_HEIGHT = 100;
 const CELL_CORNER_RADIUS = 12;
-const DEFAULT_COLOR = 0x64748b;
 
 const ICON_CY = 34;
 const LABEL_BOTTOM_Y = 82;
@@ -97,7 +98,7 @@ const BADGE_STYLE = new TextStyle({
 // ── Public API ────────────────────────────────────────
 
 export function getSymbolColor(symbolId: string): number {
-  return SYMBOL_COLORS[symbolId] ?? DEFAULT_COLOR;
+  return SYMBOL_COLORS[symbolId] ?? hashSymbolColor(symbolId);
 }
 
 export function createSymbolCell(symbolId: string, badgeText?: string): Container {
@@ -191,7 +192,7 @@ function getLabelStyle(symbolId: string): TextStyle {
 }
 
 function getLabel(symbolId: string): string {
-  return SYMBOL_LABELS[symbolId] ?? symbolId.toUpperCase();
+  return SYMBOL_LABELS[symbolId] ?? getRegisteredSymbolName(symbolId)?.toUpperCase() ?? symbolId.toUpperCase();
 }
 
 function getSymbolTexture(symbolId: string): Texture | undefined {

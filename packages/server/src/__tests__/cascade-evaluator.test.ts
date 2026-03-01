@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import type { Payline, PayoutRule, SymbolDefinition } from "@slot-engine/shared";
+import type { Payline, PayoutRule, ReelStrip, SymbolDefinition } from "@slot-engine/shared";
 import { evaluateCascades } from "../cascade-evaluator.js";
 import { FixedRng } from "./helpers.js";
 
@@ -17,10 +17,10 @@ const PAYOUTS: readonly PayoutRule[] = [
   { symbolId: "seven", count: 3, multiplier: 50 },
 ];
 
-const REELS = [
-  ["cherry", "bar", "seven"],
-  ["cherry", "bar", "seven"],
-  ["cherry", "bar", "seven"],
+const REELS: readonly ReelStrip[] = [
+  [{ symbolId: "cherry", weight: 1 }, { symbolId: "bar", weight: 1 }, { symbolId: "seven", weight: 1 }],
+  [{ symbolId: "cherry", weight: 1 }, { symbolId: "bar", weight: 1 }, { symbolId: "seven", weight: 1 }],
+  [{ symbolId: "cherry", weight: 1 }, { symbolId: "bar", weight: 1 }, { symbolId: "seven", weight: 1 }],
 ];
 
 const NO_WILDS = new Set<string>();
@@ -49,7 +49,7 @@ describe("evaluateCascades", () => {
       ["seven", "seven", "seven"],
     ];
 
-    // After removing row 0 cherry×3, fill with [0, 1, 2] → cherry, bar, seven (no match)
+    // After removing row 0 cherry×3, fill with 0,1,2 → cherry,bar,seven (no match)
     const rng = new FixedRng([0, 1, 2]);
     const result = evaluateCascades(grid, PAYLINES, PAYOUTS, 10, NO_WILDS, SYMBOLS, REELS, rng);
 
@@ -119,10 +119,10 @@ describe("evaluateCascades", () => {
       { id: "wild", name: "Wild", wild: true },
     ];
     const wildIds = new Set(["wild"]);
-    const reelsWithWild = [
-      ["cherry", "bar", "seven", "wild"],
-      ["cherry", "bar", "seven", "wild"],
-      ["cherry", "bar", "seven", "wild"],
+    const reelsWithWild: readonly ReelStrip[] = [
+      [{ symbolId: "cherry", weight: 1 }, { symbolId: "bar", weight: 1 }, { symbolId: "seven", weight: 1 }, { symbolId: "wild", weight: 1 }],
+      [{ symbolId: "cherry", weight: 1 }, { symbolId: "bar", weight: 1 }, { symbolId: "seven", weight: 1 }, { symbolId: "wild", weight: 1 }],
+      [{ symbolId: "cherry", weight: 1 }, { symbolId: "bar", weight: 1 }, { symbolId: "seven", weight: 1 }, { symbolId: "wild", weight: 1 }],
     ];
 
     // Grid: cherry, wild, cherry → cherry×3 with wild sub

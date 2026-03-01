@@ -11,7 +11,11 @@ const MINI_CONFIG: GameConfig = {
     { id: "b", name: "B" },
     { id: "wild", name: "Wild", wild: true },
   ],
-  reels: [["a", "b", "wild"], ["a", "b", "wild"], ["a", "b", "wild"]],
+  reels: [
+    [{ symbolId: "a", weight: 1 }, { symbolId: "b", weight: 1 }, { symbolId: "wild", weight: 1 }],
+    [{ symbolId: "a", weight: 1 }, { symbolId: "b", weight: 1 }, { symbolId: "wild", weight: 1 }],
+    [{ symbolId: "a", weight: 1 }, { symbolId: "b", weight: 1 }, { symbolId: "wild", weight: 1 }],
+  ],
   paylines: [[0, 0, 0]],
   payouts: [
     { symbolId: "a", count: 3, multiplier: 5 },
