@@ -4,7 +4,8 @@ export { createReelGrid, setGridSymbols, startGridSpin, stopGridSpin, REEL_GAP, 
 export { createBalanceDisplay, updateBalanceDisplay, formatCents } from "./balance-display.js";
 export { createBetSelector, updateBetSelector } from "./bet-selector.js";
 export { createSpinButton, updateSpinButton } from "./spin-button.js";
-export { createWinDisplay, showWin, clearWin } from "./win-display.js";
+export { createWinDisplay, showWin, showCycledWins, clearWin } from "./win-display.js";
+export { showFeatureBanner } from "./feature-banner.js";
 export { createFreeSpinsDisplay, updateFreeSpinsDisplay } from "./free-spins-display.js";
 export { createHud } from "./hud.js";
 export type { HudComponents } from "./hud.js";

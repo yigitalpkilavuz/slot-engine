@@ -1,22 +1,11 @@
 import { Application, Container, Text, TextStyle } from "pixi.js";
 import { loadAssets } from "./assets/asset-loader.js";
 import { getGameManifest } from "./assets/game-asset-registry.js";
-import type { FreeSpinModifierState } from "@slot-engine/shared";
 import {
   createSession,
-  fetchSession,
   fetchGameConfig,
   fetchGameList,
 } from "./api/api-client.js";
-
-const SESSION_STORAGE_KEY = "slotengine_session_id";
-
-interface FreeSpinRecoveryData {
-  readonly freeSpinsRemaining: number;
-  readonly freeSpinAccumulatedWin: number;
-  readonly freeSpinBet: number;
-  readonly freeSpinModifierStates: readonly FreeSpinModifierState[] | null;
-}
 import { GameState } from "./state/game-state.js";
 import { buildGameScene } from "./scene/game-scene.js";
 import { buildGameSelectScene } from "./scene/game-select-scene.js";
@@ -46,13 +35,13 @@ export async function createApp(container: HTMLElement): Promise<Application> {
 
   container.appendChild(app.canvas);
 
-  // Responsive canvas scaling
+  // Responsive scaling — resize renderer to match viewport so text stays sharp
   function resizeCanvas(): void {
     const vw = window.innerWidth;
     const vh = window.innerHeight;
     const scale = Math.min(vw / DESIGN_WIDTH, vh / DESIGN_HEIGHT);
-    app.canvas.style.width = `${String(DESIGN_WIDTH * scale)}px`;
-    app.canvas.style.height = `${String(DESIGN_HEIGHT * scale)}px`;
+    app.renderer.resize(DESIGN_WIDTH * scale, DESIGN_HEIGHT * scale);
+    app.stage.scale.set(scale);
   }
   window.addEventListener("resize", resizeCanvas);
   resizeCanvas();
@@ -145,14 +134,13 @@ export async function createApp(container: HTMLElement): Promise<Application> {
     }
   }
 
-  async function showGame(gameId: string, recovery?: FreeSpinRecoveryData): Promise<void> {
+  async function showGame(gameId: string): Promise<void> {
     if (navigating) return;
     navigating = true;
     try {
       if (!sessionData) {
         const session = await createSession();
         sessionData = { sessionId: session.sessionId, balance: session.balance };
-        try { localStorage.setItem(SESSION_STORAGE_KEY, session.sessionId); } catch { /* noop */ }
       }
 
       const gameConfig = await fetchGameConfig(gameId);
@@ -173,15 +161,6 @@ export async function createApp(container: HTMLElement): Promise<Application> {
       gameState.setSession(sessionData.sessionId, sessionData.balance);
       gameState.setGameConfig(gameConfig);
 
-      if (recovery) {
-        gameState.restoreFreeSpins(
-          recovery.freeSpinsRemaining,
-          recovery.freeSpinAccumulatedWin,
-          recovery.freeSpinBet,
-          recovery.freeSpinModifierStates,
-        );
-      }
-
       const scene = buildGameScene(
         DESIGN_WIDTH,
         DESIGN_HEIGHT,
@@ -200,37 +179,7 @@ export async function createApp(container: HTMLElement): Promise<Application> {
     }
   }
 
-  // Attempt session recovery from localStorage
-  let recovered = false;
-  try {
-    const savedSessionId = localStorage.getItem(SESSION_STORAGE_KEY);
-    if (savedSessionId) {
-      try {
-        const state = await fetchSession(savedSessionId);
-        sessionData = { sessionId: state.sessionId, balance: state.balance };
-
-        if (state.activeGameId && state.freeSpinsRemaining > 0) {
-          await showGame(state.activeGameId, {
-            freeSpinsRemaining: state.freeSpinsRemaining,
-            freeSpinAccumulatedWin: state.freeSpinAccumulatedWin,
-            freeSpinBet: state.freeSpinBet,
-            freeSpinModifierStates: state.freeSpinModifierStates,
-          });
-          recovered = true;
-        }
-      } catch {
-        // Session gone (server restarted) — clear and start fresh
-        localStorage.removeItem(SESSION_STORAGE_KEY);
-        sessionData = null;
-      }
-    }
-  } catch {
-    // localStorage unavailable — skip recovery
-  }
-
-  if (!recovered) {
-    await showGameSelect();
-  }
+  await showGameSelect();
 
   return app;
 }

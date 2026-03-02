@@ -85,6 +85,16 @@ export function easeOutQuint(t: number): number {
   return 1 - (1 - t) ** 5;
 }
 
+export function easeInCubic(t: number): number {
+  return t ** 3;
+}
+
+// ── Win Celebration Thresholds (payout / bet) ───────
+
+export const WIN_TIER_BIG = 10;
+export const WIN_TIER_MEGA = 25;
+export const WIN_TIER_EPIC = 50;
+
 // ── Symbol Registry (data-driven from game config) ──
 
 const symbolNameRegistry = new Map<string, string>();

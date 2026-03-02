@@ -21,13 +21,16 @@ import { createHud, updateAutoSpinButton } from "../ui/hud.js";
 import { updateBalanceDisplay } from "../ui/balance-display.js";
 import { updateBetSelector } from "../ui/bet-selector.js";
 import { updateSpinButton, updateSpinButtonAutoStop, resetSpinButtonLabel } from "../ui/spin-button.js";
-import { createWinDisplay, showWin, clearWin } from "../ui/win-display.js";
+import { createWinDisplay, showWin, showCycledWins, clearWin } from "../ui/win-display.js";
+import { showFeatureBanner } from "../ui/feature-banner.js";
 import { createFreeSpinsDisplay, updateFreeSpinsDisplay } from "../ui/free-spins-display.js";
 import { showBonusAnnouncement } from "../ui/bonus-announcement.js";
 import { showFreeSpinsSummary } from "../ui/free-spins-summary.js";
 import { createPaytableOverlay } from "../ui/paytable-overlay.js";
 import { createAutoSpinSelector } from "../ui/auto-spin-selector.js";
 import { updateBonusBuyButton } from "../ui/bonus-buy-button.js";
+import { createParticleEmitter } from "../ui/particle-system.js";
+import { showWinCelebration, getWinTier } from "../ui/win-celebration.js";
 import {
   FONT_DISPLAY, FONT_BODY,
   GOLD, SILVER,
@@ -113,8 +116,15 @@ export function buildGameScene(
   reelGrid.y = contentTop + Math.max(0, (contentBottom - contentTop - gridPanelHeight) / 2);
   scene.addChild(reelGrid);
 
+  // Particle emitter (rendered above reelGrid, below overlays)
+  const particleEmitter = createParticleEmitter(ticker);
+  scene.addChild(particleEmitter.container);
+
   // Build scatter IDs set for highlight logic
   const scatterIds = new Set(config.symbols.filter((s) => s.scatter === true).map((s) => s.id));
+
+  // Build expanding wild IDs for expansion animation filtering
+  const expandingWildIds = new Set(config.symbols.filter((s) => s.expandingWild === true).map((s) => s.id));
 
   // Build badge map for wild multiplier display
   const badgeMap = new Map<string, string>();
@@ -330,8 +340,12 @@ export function buildGameScene(
 
     const result = gameState.lastResult!;
 
-    // Determine which grid to show on reel stop (original if expanding wilds)
-    const displayGrid = result.originalGrid ?? result.grid;
+    // Determine which grid to show on reel stop:
+    // - Expanding wilds: show pre-expansion grid (originalGrid)
+    // - Cascade: show initial grid (cascadeSteps[0].grid) so step 0 wins align
+    // - Otherwise: show result.grid directly
+    const displayGrid = result.originalGrid
+      ?? (result.cascadeSteps && result.cascadeSteps.length > 0 ? result.cascadeSteps[0]!.grid : result.grid);
 
     // Compute scatter anticipation delays (based on the grid the player sees landing)
     const scatterThreshold = getMinScatterThreshold(config);
@@ -340,11 +354,23 @@ export function buildGameScene(
       : undefined;
 
     // Stop reels with stagger (+ anticipation if 2+ scatters landed early)
-    await stopGridSpin(reelGrid, displayGrid, ticker, reelDelays, badgeMap);
+    await stopGridSpin(reelGrid, displayGrid, ticker, reelDelays, badgeMap, scatterIds, particleEmitter);
 
     // Animate expanding wilds if triggered
     if (result.originalGrid) {
-      await animateExpandingWilds(reelGrid, result.originalGrid, result.grid, ticker, badgeMap);
+      const { overlay: ewBanner, waitForComplete: waitEw } = showFeatureBanner(
+        canvasWidth, canvasHeight, "EXPANDING WILDS!", ticker,
+      );
+      scene.addChild(ewBanner);
+      await waitEw();
+      scene.removeChild(ewBanner);
+      ewBanner.destroy({ children: true });
+
+      // Expansion target: pre-cascade expanded grid (or result.grid if no cascading)
+      const expandedGrid = result.cascadeSteps && result.cascadeSteps.length > 0
+        ? result.cascadeSteps[0]!.grid
+        : result.grid;
+      await animateExpandingWilds(reelGrid, result.originalGrid, expandedGrid, expandingWildIds, ticker, badgeMap, particleEmitter);
     }
 
     // Update balance and free spins
@@ -353,33 +379,59 @@ export function buildGameScene(
 
     // Show wins — animate cascade steps if present
     const gridOrigin = { x: reelGrid.x, y: reelGrid.y };
-    if (result.cascadeSteps && result.cascadeSteps.length > 1) {
+    const winSpeed = isAutoSpinning() || gameState.inFreeSpins ? "fast" as const : "normal" as const;
+
+    if (result.cascadeSteps && result.cascadeSteps.length > 0) {
       for (let step = 0; step < result.cascadeSteps.length; step++) {
         const cascade = result.cascadeSteps[step]!;
 
-        // Show this step's grid (step 0 is already displayed from reel stop)
         if (step > 0) {
+          // Update grid BEFORE banner so new symbols are underneath when it fades
           setGridSymbols(reelGrid, cascade.grid, badgeMap);
+
+          const { overlay: cascBanner, waitForComplete: waitCasc } = showFeatureBanner(
+            canvasWidth, canvasHeight, "CASCADE!", ticker,
+          );
+          scene.addChild(cascBanner);
+          await waitCasc();
+          scene.removeChild(cascBanner);
+          cascBanner.destroy({ children: true });
         }
 
-        // Highlight this step's wins
         if (cascade.wins.length > 0) {
           showWin(winDisplay, cascade.payout, cascade.wins, config.paylines, gridOrigin, cascade.grid, scatterIds);
           await delay(1000);
           clearWin(winDisplay);
 
-          // Flash out winning cells
-          await animateCascadeTransition(reelGrid, cascade.wins, config.paylines, cascade.grid, scatterIds, ticker);
+          await animateCascadeTransition(reelGrid, cascade.wins, config.paylines, cascade.grid, scatterIds, ticker, particleEmitter);
         }
       }
 
-      // Show final grid + total win
+      // Show final grid + total payout (no cycling — cascade wins reference earlier grids)
       setGridSymbols(reelGrid, result.grid, badgeMap);
       if (result.totalPayout > 0) {
-        showWin(winDisplay, result.totalPayout, result.wins, config.paylines, gridOrigin, result.grid, scatterIds);
+        showWin(winDisplay, result.totalPayout, [], config.paylines, gridOrigin, result.grid, scatterIds);
       }
     } else if (result.totalPayout > 0) {
-      showWin(winDisplay, result.totalPayout, result.wins, config.paylines, gridOrigin, result.grid, scatterIds);
+      showCycledWins({
+        display: winDisplay, wins: result.wins, paylines: config.paylines,
+        gridOrigin, grid: result.grid, scatterIds, ticker,
+        totalPayoutCents: result.totalPayout, speed: winSpeed,
+      });
+    }
+
+    // Tiered win celebration (skip during auto-spin and free spins)
+    if (result.totalPayout > 0 && !isAutoSpinning() && !gameState.inFreeSpins) {
+      const tier = getWinTier(result.totalPayout, gameState.currentBet);
+      if (tier !== "normal") {
+        const { overlay: celebOverlay, waitForComplete: waitForCeleb } = showWinCelebration(
+          canvasWidth, canvasHeight, result.totalPayout, gameState.currentBet, ticker, particleEmitter, scene,
+        );
+        scene.addChild(celebOverlay);
+        await waitForCeleb();
+        scene.removeChild(celebOverlay);
+        celebOverlay.destroy({ children: true });
+      }
     }
 
     // Show bonus announcement when free spins are first triggered
@@ -390,7 +442,7 @@ export function buildGameScene(
 
       const modifierNames = getModifierDisplayNames(config);
       const { overlay, waitForComplete } = showBonusAnnouncement(
-        canvasWidth, canvasHeight, result.freeSpinsAwarded, ticker, modifierNames,
+        canvasWidth, canvasHeight, result.freeSpinsAwarded, ticker, modifierNames, particleEmitter, scene,
       );
       scene.addChild(overlay);
       await waitForComplete();
@@ -411,7 +463,7 @@ export function buildGameScene(
     if (wasInFreeSpins) {
       const totalWin = gameState.freeSpinsTotalWin;
       const { overlay: summaryOverlay, waitForComplete: waitForSummary } = showFreeSpinsSummary(
-        canvasWidth, canvasHeight, totalWin, ticker,
+        canvasWidth, canvasHeight, totalWin, ticker, gameState.currentBet, particleEmitter,
       );
       scene.addChild(summaryOverlay);
       await waitForSummary();
