@@ -157,6 +157,14 @@ export const SYMBOL_COLORS: Record<string, number> = {
   star: 0xd49020,
   wild: 0xc8a960,
   scatter: 0xd05050,
+  coin: 0xb08840,
+  amphora: 0xb05830,
+  helmet: 0x808890,
+  shield: 0x8b7020,
+  medusa: 0x4a8050,
+  pegasus: 0x5080c0,
+  athena: 0xa07030,
+  poseidon: 0x206098,
 };
 
 // ── Symbol Labels ───────────────────────────────────
@@ -179,6 +187,14 @@ export const SYMBOL_LABELS: Record<string, string> = {
   star: "STAR",
   wild: "WILD",
   scatter: "BONUS",
+  coin: "COIN",
+  amphora: "VASE",
+  helmet: "HELM",
+  shield: "SHLD",
+  medusa: "MEDUSA",
+  pegasus: "PEGAS",
+  athena: "ATHENA",
+  poseidon: "POSDN",
 };
 
 // ── Highlight Colors (for win overlays) ─────────────

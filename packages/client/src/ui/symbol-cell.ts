@@ -348,6 +348,14 @@ const ICON_DRAWERS: Record<string, (g: Graphics, cx: number, cy: number) => void
   coconut: drawCoconut,
   diamond: drawDiamond,
   star: drawStarIcon,
+  coin: drawCoin,
+  amphora: drawAmphora,
+  helmet: drawHelmet,
+  shield: drawShield,
+  medusa: drawMedusa,
+  pegasus: drawPegasus,
+  athena: drawAthena,
+  poseidon: drawPoseidon,
 };
 
 // ── Individual Icon Drawings ──────────────────────────
@@ -627,6 +635,296 @@ function drawStarIcon(g: Graphics, cx: number, cy: number): void {
   // Inner highlight
   g.star(cx - 2, cy - 2, 5, 12, 5, -Math.PI / 2);
   g.fill({ color: 0xffee80, alpha: 0.25 });
+}
+
+// ── Olympus Theme Icons ──────────────────────────────
+
+function drawCoin(g: Graphics, cx: number, cy: number): void {
+  // Outer coin
+  g.circle(cx, cy, 17);
+  g.fill({ color: 0xd4a040 });
+  // Inner ring
+  g.circle(cx, cy, 13);
+  g.stroke({ width: 1.5, color: 0xb08030, alpha: 0.6 });
+  // Laurel leaves
+  g.ellipse(cx - 10, cy - 2, 3, 7);
+  g.fill({ color: 0xc89838, alpha: 0.4 });
+  g.ellipse(cx + 10, cy - 2, 3, 7);
+  g.fill({ color: 0xc89838, alpha: 0.4 });
+  // Center profile dot
+  g.circle(cx, cy, 4);
+  g.fill({ color: 0xe8c060 });
+  // Highlight
+  g.circle(cx - 5, cy - 6, 6);
+  g.fill({ color: 0xf0d870, alpha: 0.25 });
+  // Rim
+  g.circle(cx, cy, 17);
+  g.stroke({ width: 1.5, color: 0x906820, alpha: 0.5 });
+}
+
+function drawAmphora(g: Graphics, cx: number, cy: number): void {
+  // Body
+  g.moveTo(cx - 4, cy - 16);
+  g.quadraticCurveTo(cx - 6, cy - 12, cx - 5, cy - 8);
+  g.quadraticCurveTo(cx - 14, cy, cx - 12, cy + 8);
+  g.quadraticCurveTo(cx - 10, cy + 16, cx, cy + 18);
+  g.quadraticCurveTo(cx + 10, cy + 16, cx + 12, cy + 8);
+  g.quadraticCurveTo(cx + 14, cy, cx + 5, cy - 8);
+  g.quadraticCurveTo(cx + 6, cy - 12, cx + 4, cy - 16);
+  g.closePath();
+  g.fill({ color: 0xc06830 });
+  // Neck rim
+  g.roundRect(cx - 5, cy - 18, 10, 4, 2);
+  g.fill({ color: 0xd07838 });
+  // Left handle
+  g.moveTo(cx - 5, cy - 12);
+  g.quadraticCurveTo(cx - 18, cy - 8, cx - 12, cy + 2);
+  g.stroke({ width: 2.5, color: 0xa05828 });
+  // Right handle
+  g.moveTo(cx + 5, cy - 12);
+  g.quadraticCurveTo(cx + 18, cy - 8, cx + 12, cy + 2);
+  g.stroke({ width: 2.5, color: 0xa05828 });
+  // Decorative band
+  g.moveTo(cx - 11, cy + 2);
+  g.lineTo(cx + 11, cy + 2);
+  g.stroke({ width: 1.5, color: 0x804020, alpha: 0.5 });
+  // Highlight
+  g.ellipse(cx - 4, cy - 4, 4, 8);
+  g.fill({ color: 0xe08848, alpha: 0.25 });
+}
+
+function drawHelmet(g: Graphics, cx: number, cy: number): void {
+  // Dome
+  g.arc(cx, cy, 16, Math.PI, 0);
+  g.lineTo(cx + 16, cy + 8);
+  g.lineTo(cx - 16, cy + 8);
+  g.closePath();
+  g.fill({ color: 0x909aa0 });
+  // Crest
+  g.moveTo(cx - 2, cy - 16);
+  g.lineTo(cx, cy - 22);
+  g.lineTo(cx + 2, cy - 16);
+  g.closePath();
+  g.fill({ color: 0xc04040 });
+  g.moveTo(cx, cy - 22);
+  g.quadraticCurveTo(cx + 10, cy - 18, cx + 14, cy - 10);
+  g.stroke({ width: 3, color: 0xc04040 });
+  // Face opening (T-slit)
+  g.moveTo(cx - 7, cy - 2);
+  g.lineTo(cx + 7, cy - 2);
+  g.stroke({ width: 2, color: 0x404848 });
+  g.moveTo(cx, cy - 2);
+  g.lineTo(cx, cy + 6);
+  g.stroke({ width: 2, color: 0x404848 });
+  // Cheek guards
+  g.moveTo(cx - 16, cy + 8);
+  g.lineTo(cx - 10, cy + 16);
+  g.lineTo(cx - 6, cy + 8);
+  g.closePath();
+  g.fill({ color: 0x808890 });
+  g.moveTo(cx + 16, cy + 8);
+  g.lineTo(cx + 10, cy + 16);
+  g.lineTo(cx + 6, cy + 8);
+  g.closePath();
+  g.fill({ color: 0x808890 });
+  // Metallic highlight
+  g.arc(cx - 4, cy - 4, 10, Math.PI + 0.3, -0.3);
+  g.stroke({ width: 1, color: 0xc0c8d0, alpha: 0.3 });
+}
+
+function drawShield(g: Graphics, cx: number, cy: number): void {
+  // Outer shield
+  g.circle(cx, cy, 18);
+  g.fill({ color: 0xb89030 });
+  // Inner ring
+  g.circle(cx, cy, 14);
+  g.stroke({ width: 2, color: 0x907020 });
+  // Central emblem (sun/compass)
+  g.star(cx, cy, 8, 7, 3, -Math.PI / 8);
+  g.fill({ color: 0xd4a840 });
+  // Center boss
+  g.circle(cx, cy, 3.5);
+  g.fill({ color: 0xe0c060 });
+  // Rim highlight
+  g.arc(cx, cy, 17, Math.PI + 0.5, -0.5);
+  g.stroke({ width: 1.5, color: 0xd8c070, alpha: 0.3 });
+  // Rim shadow
+  g.arc(cx, cy, 17, 0.5, Math.PI - 0.5);
+  g.stroke({ width: 1.5, color: 0x705818, alpha: 0.3 });
+  // Outer border
+  g.circle(cx, cy, 18);
+  g.stroke({ width: 1.5, color: 0x806020, alpha: 0.5 });
+}
+
+function drawMedusa(g: Graphics, cx: number, cy: number): void {
+  // Snake hair (behind face)
+  const snakes: [number, number, number, number][] = [
+    [cx - 10, cy - 12, cx - 18, cy - 20],
+    [cx - 5, cy - 14, cx - 8, cy - 24],
+    [cx, cy - 15, cx + 2, cy - 26],
+    [cx + 5, cy - 14, cx + 10, cy - 24],
+    [cx + 10, cy - 12, cx + 20, cy - 18],
+  ];
+  for (const [sx, sy, ex, ey] of snakes) {
+    g.moveTo(sx, sy);
+    g.quadraticCurveTo((sx + ex) / 2 + 4, (sy + ey) / 2 - 2, ex, ey);
+    g.stroke({ width: 2, color: 0x408048 });
+    g.circle(ex, ey, 2);
+    g.fill({ color: 0x509058 });
+  }
+  // Face
+  g.ellipse(cx, cy + 2, 12, 14);
+  g.fill({ color: 0x70a878 });
+  // Eyes
+  g.ellipse(cx - 4, cy - 2, 2.5, 1.5);
+  g.fill({ color: 0xff3030 });
+  g.ellipse(cx + 4, cy - 2, 2.5, 1.5);
+  g.fill({ color: 0xff3030 });
+  // Mouth
+  g.moveTo(cx - 4, cy + 6);
+  g.quadraticCurveTo(cx, cy + 9, cx + 4, cy + 6);
+  g.stroke({ width: 1.5, color: 0x406848 });
+  // Cheek shading
+  g.ellipse(cx - 6, cy + 2, 3, 4);
+  g.fill({ color: 0x88c890, alpha: 0.2 });
+}
+
+function drawPegasus(g: Graphics, cx: number, cy: number): void {
+  // Wings (behind body)
+  g.moveTo(cx - 2, cy - 2);
+  g.lineTo(cx - 16, cy - 20);
+  g.lineTo(cx - 6, cy - 6);
+  g.closePath();
+  g.fill({ color: 0x80a8e0, alpha: 0.5 });
+  g.moveTo(cx - 2, cy - 2);
+  g.lineTo(cx - 10, cy - 22);
+  g.lineTo(cx + 2, cy - 8);
+  g.closePath();
+  g.fill({ color: 0x6090d0, alpha: 0.4 });
+  g.moveTo(cx + 4, cy - 2);
+  g.lineTo(cx + 18, cy - 18);
+  g.lineTo(cx + 8, cy - 6);
+  g.closePath();
+  g.fill({ color: 0x80a8e0, alpha: 0.5 });
+  g.moveTo(cx + 4, cy - 2);
+  g.lineTo(cx + 14, cy - 22);
+  g.lineTo(cx + 0, cy - 8);
+  g.closePath();
+  g.fill({ color: 0x6090d0, alpha: 0.4 });
+  // Body
+  g.ellipse(cx + 2, cy + 4, 12, 8);
+  g.fill({ color: 0xd0d8e8 });
+  // Head
+  g.circle(cx - 10, cy - 4, 6);
+  g.fill({ color: 0xc8d0e0 });
+  // Neck
+  g.moveTo(cx - 6, cy - 1);
+  g.lineTo(cx - 5, cy + 0);
+  g.stroke({ width: 4, color: 0xc8d0e0 });
+  // Eye
+  g.circle(cx - 12, cy - 5, 1.2);
+  g.fill({ color: 0x304060 });
+  // Legs
+  g.moveTo(cx - 4, cy + 10);
+  g.lineTo(cx - 6, cy + 18);
+  g.stroke({ width: 2, color: 0xa0a8b8 });
+  g.moveTo(cx + 6, cy + 10);
+  g.lineTo(cx + 8, cy + 18);
+  g.stroke({ width: 2, color: 0xa0a8b8 });
+  // Tail
+  g.moveTo(cx + 14, cy + 4);
+  g.quadraticCurveTo(cx + 20, cy + 2, cx + 18, cy - 2);
+  g.stroke({ width: 1.5, color: 0xa0a8c0 });
+  // Highlight
+  g.ellipse(cx - 2, cy + 1, 6, 4);
+  g.fill({ color: 0xe8eef8, alpha: 0.3 });
+}
+
+function drawAthena(g: Graphics, cx: number, cy: number): void {
+  // Hair (behind)
+  g.moveTo(cx - 10, cy);
+  g.quadraticCurveTo(cx - 14, cy + 10, cx - 10, cy + 18);
+  g.stroke({ width: 3, color: 0x604020 });
+  g.moveTo(cx + 10, cy);
+  g.quadraticCurveTo(cx + 14, cy + 10, cx + 10, cy + 18);
+  g.stroke({ width: 3, color: 0x604020 });
+  // Face
+  g.ellipse(cx, cy + 4, 10, 12);
+  g.fill({ color: 0xe8d0a8 });
+  // Helmet
+  g.arc(cx, cy - 4, 12, Math.PI, 0);
+  g.lineTo(cx + 12, cy);
+  g.lineTo(cx - 12, cy);
+  g.closePath();
+  g.fill({ color: 0xc89030 });
+  // Helmet crest
+  g.moveTo(cx - 2, cy - 16);
+  g.lineTo(cx, cy - 22);
+  g.lineTo(cx + 2, cy - 16);
+  g.closePath();
+  g.fill({ color: 0xc04040 });
+  g.moveTo(cx, cy - 22);
+  g.quadraticCurveTo(cx + 8, cy - 18, cx + 12, cy - 12);
+  g.stroke({ width: 2.5, color: 0xc04040 });
+  // Eyes
+  g.circle(cx - 3.5, cy + 2, 1.3);
+  g.fill({ color: 0x405030 });
+  g.circle(cx + 3.5, cy + 2, 1.3);
+  g.fill({ color: 0x405030 });
+  // Lips
+  g.moveTo(cx - 3, cy + 8);
+  g.quadraticCurveTo(cx, cy + 10, cx + 3, cy + 8);
+  g.stroke({ width: 1, color: 0xc08070 });
+  // Helmet highlight
+  g.arc(cx - 4, cy - 6, 8, Math.PI + 0.3, -0.3);
+  g.stroke({ width: 1, color: 0xe8c060, alpha: 0.3 });
+}
+
+function drawPoseidon(g: Graphics, cx: number, cy: number): void {
+  // Water glow
+  g.circle(cx, cy - 2, 12);
+  g.fill({ color: 0x4090c0, alpha: 0.1 });
+  // Staff
+  g.moveTo(cx, cy + 18);
+  g.lineTo(cx, cy - 10);
+  g.stroke({ width: 3, color: 0x4090c0 });
+  // Center prong
+  g.moveTo(cx - 1, cy - 10);
+  g.lineTo(cx, cy - 22);
+  g.lineTo(cx + 1, cy - 10);
+  g.closePath();
+  g.fill({ color: 0x50a8d8 });
+  // Left prong
+  g.moveTo(cx - 3, cy - 10);
+  g.lineTo(cx - 7, cy - 19);
+  g.lineTo(cx - 5, cy - 10);
+  g.closePath();
+  g.fill({ color: 0x50a8d8 });
+  // Right prong
+  g.moveTo(cx + 3, cy - 10);
+  g.lineTo(cx + 7, cy - 19);
+  g.lineTo(cx + 5, cy - 10);
+  g.closePath();
+  g.fill({ color: 0x50a8d8 });
+  // Crossbar
+  g.moveTo(cx - 6, cy - 10);
+  g.lineTo(cx + 6, cy - 10);
+  g.stroke({ width: 2, color: 0x3880b0 });
+  // Water splash left
+  g.moveTo(cx - 14, cy + 12);
+  g.quadraticCurveTo(cx - 8, cy + 8, cx - 4, cy + 12);
+  g.stroke({ width: 1.5, color: 0x3080b0, alpha: 0.4 });
+  // Water splash right
+  g.moveTo(cx + 4, cy + 12);
+  g.quadraticCurveTo(cx + 8, cy + 8, cx + 14, cy + 12);
+  g.stroke({ width: 1.5, color: 0x3080b0, alpha: 0.4 });
+  // Prong tips highlight
+  g.circle(cx, cy - 21, 1.5);
+  g.fill({ color: 0x80d0f0, alpha: 0.6 });
+  g.circle(cx - 7, cy - 18, 1.2);
+  g.fill({ color: 0x80d0f0, alpha: 0.5 });
+  g.circle(cx + 7, cy - 18, 1.2);
+  g.fill({ color: 0x80d0f0, alpha: 0.5 });
 }
 
 // ── Badge Functions ───────────────────────────────────
